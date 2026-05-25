@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GamerVault — Diagrama de Colecciones</title>
+<style>
+  :root {
+    --bg: #0d0d14; --bg2: #12121c; --bg3: #1a1a28; --card: #15151f;
+    --border: #252535; --accent: #7c3aed; --accent2: #a855f7;
+    --cyan: #06b6d4; --green: #10b981; --yellow: #fbbf24;
+    --orange: #f97316; --red: #ef4444; --text: #e8e8f0; --muted: #6b6b8a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+  h1 {
+    font-size: 22px; font-weight: 900; letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--accent2), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 11px; color: var(--muted); letter-spacing: 2px;
+    margin-bottom: 32px; font-weight: 600;
+  }
+  .legend {
+    display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 28px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+  }
+  .leg-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+  .leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .diagram-wrap {
+    display: flex; gap: 0; align-items: flex-start; justify-content: center;
+    flex-wrap: wrap; position: relative;
+  }
+
+  /* ── COLLECTION CARD ── */
+  .col-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 220px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .col-header {
+    padding: 10px 14px;
+    font-size: 13px; font-weight: 800; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .col-header .ico { font-size: 16px; }
+  .col-count {
+    margin-left: auto; font-size: 9px; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+    background: rgba(255,255,255,.08); color: var(--muted);
+  }
+  .col-fields { border-top: 1px solid var(--border); }
+  .field {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 14px; font-size: 11px;
+    border-bottom: 1px solid rgba(37,37,53,.5);
+  }
+  .field:last-child { border-bottom: none; }
+  .field-tag {
+    font-size: 9px; font-weight: 700; padding: 1px 5px;
+    border-radius: 3px; flex-shrink: 0; letter-spacing: .3px;
+  }
+  .pk  { background: rgba(251,191,36,.15); color: var(--yellow); }
+  .fk  { background: rgba(6,182,212,.15);  color: var(--cyan); }
+  .emb { background: rgba(124,58,237,.15); color: var(--accent2); }
+  .arr { background: rgba(16,185,129,.15); color: var(--green); }
+  .idx { background: rgba(249,115,22,.15); color: var(--orange); }
+  .field-name { font-weight: 600; flex: 1; }
+  .field-type { color: var(--muted); font-size: 10px; }
+
+  /* ── CONNECTORS (SVG overlay) ── */
+  .diagram-outer { position: relative; }
+  svg.connectors {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; overflow: visible;
+  }
+
+  /* ── LAYOUT GRID ── */
+  .row { display: flex; gap: 28px; justify-content: center; margin-bottom: 28px; }
+  .col-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .rel-label {
+    font-size: 9px; color: var(--cyan); font-weight: 700;
+    letter-spacing: 1px; text-align: center;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 9px;
+  }
+
+  /* ── AGGREGATE SECTION ── */
+  .agg-section { margin-top: 10px; }
+  .agg-title {
+    font-size: 11px; color: var(--muted); font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .agg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px; }
+  .agg-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .agg-card h4 {
+    font-size: 11px; font-weight: 700; color: var(--accent2);
+    margin-bottom: 8px; letter-spacing: .5px;
+  }
+  .agg-card code {
+    font-family: 'Consolas', monospace; font-size: 10px;
+    color: var(--cyan); line-height: 1.7; display: block;
+    white-space: pre-wrap;
+  }
+  .op {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; margin: 1px 1px 4px;
+    background: rgba(124,58,237,.2); color: var(--accent2);
+  }
+
+  /* ── INDEX TABLE ── */
+  .idx-section { margin-top: 32px; }
+  .idx-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .idx-table th {
+    background: var(--bg3); padding: 7px 12px; text-align: left;
+    font-size: 9px; letter-spacing: 1px; color: var(--muted);
+    font-weight: 700; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .idx-table td { padding: 7px 12px; border-bottom: 1px solid rgba(37,37,53,.5); }
+  .idx-table tr:last-child td { border-bottom: none; }
+  .tbl-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .footer {
+    margin-top: 32px; text-align: center;
+    font-size: 10px; color: var(--muted); letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<h1>GAMERVAULT</h1>
+<div class="subtitle">DIAGRAMA DE COLECCIONES — MongoDB · Proyecto Final Electiva IV</div>
+
+<!-- LEYENDA -->
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:#fbbf24;"></div>_id (PK — ObjectId)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#06b6d4;"></div>FK — Referencia ObjectId</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#a855f7;"></div>Documento embebido</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#10b981;"></div>Array</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#f97316;"></div>Campo con índice</div>
+</div>
+
+<!-- ═══════════════ DIAGRAMA PRINCIPAL ═══════════════ -->
+<div style="overflow-x:auto;">
+<div style="min-width:900px;">
+
+<!-- FILA 1: categorias — juegos — plataformas -->
+<div class="row">
+
+  <!-- CATEGORIAS -->
+  <div class="col-wrap">
+    <div class="col-card" id="card-cat">
+      <div class="col-header" style="background:rgba(124,58,237,.15);">
+        <span class="ico">🏷️</span> categorias
+        <span class="col-count">15 docs</span>
+      </div>
+      <div class="col-fields">
+        <div class="field"><span class="field-tag pk">PK</span><span class="field-name">_id</span><span class="field-type">ObjectId</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">nombre</span><span class="field-type">String (unique)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">descripcion</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">icono</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag arr">ARR</span><span class="field-name">etiquetas</span><span class="field-type">[ String ]</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">popularidad</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">activo</span><span class="field-type">Boolean</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">fechaCreacion</span><span class="field-type">Date</span></div>
+      </div>
+    </div>
+    <div class="rel-label">1 : N</div>
+  </div>
+
+  <!-- JUEGOS -->
+  <div class="col-wrap">
+    <div class="col-card" id="card-juegos" style="width:250px;">
+      <div class="col-header" style="background:rgba(6,182,212,.12);">
+        <span class="ico">🎮</span> juegos
+        <span class="col-count">1 050 docs</span>
+      </div>
+      <div class="col-fields">
+        <div class="field"><span class="field-tag pk">PK</span><span class="field-name">_id</span><span class="field-type">ObjectId</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">nombre</span><span class="field-type">String (text)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">desarrollador</span><span class="field-type">String (text)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">genero</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag fk">FK</span><span class="field-name">categoriaId</span><span class="field-type">ObjectId → categorias</span></div>
+        <div class="field"><span class="field-tag arr fk">ARR FK</span><span class="field-name">plataformas</span><span class="field-type">[ ObjectId → plataformas ]</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">precio</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">precioOriginal</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">descuento</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">enOferta</span><span class="field-type">Boolean</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">metacritic</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">likes</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">ventas / stock</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">calificacion</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">numReseñas</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag arr">ARR</span><span class="field-name">idiomas / modos</span><span class="field-type">[ String ]</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">fechaLanzamiento</span><span class="field-type">Date</span></div>
+        <div class="field"><span class="field-tag emb">EMB</span><span class="field-name">requisitos</span><span class="field-type">{ minimos, recomendados }</span></div>
+        <div class="field"><span class="field-tag arr emb">ARR EMB</span><span class="field-name">reseñasDestacadas</span><span class="field-type">[ { usuario, puntuacion… } ]</span></div>
+      </div>
+    </div>
+    <div class="rel-label">1 : N</div>
+  </div>
+
+  <!-- PLATAFORMAS -->
+  <div class="col-wrap">
+    <div class="col-card" id="card-plat">
+      <div class="col-header" style="background:rgba(16,185,129,.12);">
+        <span class="ico">🕹️</span> plataformas
+        <span class="col-count">8 docs</span>
+      </div>
+      <div class="col-fields">
+        <div class="field"><span class="field-tag pk">PK</span><span class="field-name">_id</span><span class="field-type">ObjectId</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">nombre</span><span class="field-type">String (unique)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">fabricante</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">tipo</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">anioLanzamiento</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag emb">EMB</span><span class="field-name">especificaciones</span><span class="field-type">{ cpu, gpu, ram, almacenamiento }</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">precio_consola</span><span class="field-type">Number</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">activa</span><span class="field-type">Boolean</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FILA 2: usuarios — resenas -->
+<div class="row">
+
+  <!-- USUARIOS -->
+  <div class="col-wrap">
+    <div class="col-card" id="card-usr">
+      <div class="col-header" style="background:rgba(249,115,22,.12);">
+        <span class="ico">👤</span> usuarios
+        <span class="col-count">N docs</span>
+      </div>
+      <div class="col-fields">
+        <div class="field"><span class="field-tag pk">PK</span><span class="field-name">_id</span><span class="field-type">ObjectId</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">nombre</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">email</span><span class="field-type">String (unique)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">password</span><span class="field-type">String (hash)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">rol</span><span class="field-type">"admin" | "usuario"</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">fechaRegistro</span><span class="field-type">Date</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">activo</span><span class="field-type">Boolean</span></div>
+      </div>
+    </div>
+    <div class="rel-label">1 : N</div>
+  </div>
+
+  <!-- RESENAS -->
+  <div class="col-wrap">
+    <div class="col-card" id="card-res">
+      <div class="col-header" style="background:rgba(239,68,68,.12);">
+        <span class="ico">💬</span> resenas
+        <span class="col-count">1 200 docs</span>
+      </div>
+      <div class="col-fields">
+        <div class="field"><span class="field-tag pk">PK</span><span class="field-name">_id</span><span class="field-type">ObjectId</span></div>
+        <div class="field"><span class="field-tag fk idx">FK IDX</span><span class="field-name">juegoId</span><span class="field-type">ObjectId → juegos</span></div>
+        <div class="field"><span class="field-tag fk">FK</span><span class="field-name">usuarioId</span><span class="field-type">ObjectId → usuarios</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">usuarioNombre</span><span class="field-type">String</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">esAnonimo</span><span class="field-type">Boolean</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">puntuacion</span><span class="field-type">Number (1–5)</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">comentario</span><span class="field-type">String (máx 500)</span></div>
+        <div class="field"><span class="field-tag idx">IDX</span><span class="field-name">fecha</span><span class="field-type">Date</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">editada</span><span class="field-type">Boolean?</span></div>
+        <div class="field"><span class="field-tag"></span><span class="field-name">fechaEdicion</span><span class="field-type">Date?</span></div>
+      </div>
+    </div>
+    <span style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center;">
+      Índice compuesto único:<br>{ juegoId+usuarioId } cuando usuarioId es ObjectId
+    </span>
+  </div>
+
+</div>
+</div><!-- end min-width -->
+</div><!-- end overflow -->
+
+<!-- ═══════════════ RELACIONES (texto) ═══════════════ -->
+<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:28px;">
+  <div class="agg-title" style="margin-bottom:10px;">Relaciones entre colecciones</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;font-size:11px;">
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="color:var(--cyan);font-weight:700;white-space:nowrap;">categorias → juegos</span>
+      <span style="color:var(--muted);">1 categoría tiene N juegos. Referencia via <code style="color:var(--accent2)">juegos.categoriaId</code></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="color:var(--cyan);font-weight:700;white-space:nowrap;">plataformas → juegos</span>
+      <span style="color:var(--muted);">N:M. Un juego tiene un array de plataformas. <code style="color:var(--accent2)">juegos.plataformas[]</code></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="color:var(--cyan);font-weight:700;white-space:nowrap;">juegos → resenas</span>
+      <span style="color:var(--muted);">1 juego tiene N reseñas. Referencia via <code style="color:var(--accent2)">resenas.juegoId</code></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <span style="color:var(--cyan);font-weight:700;white-space:nowrap;">usuarios → resenas</span>
+      <span style="color:var(--muted);">1 usuario tiene N reseñas. Máx 1 por juego. Via <code style="color:var(--accent2)">resenas.usuarioId</code></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AGGREGATES ═══════════════ -->
+<div class="agg-section">
+  <div class="agg-title">Pipelines de Agregación implementados</div>
+  <div class="agg-grid">
+
+    <div class="agg-card">
+      <h4>AGG 1 — Totales y promedios por categoría</h4>
+      <div style="margin-bottom:6px;">
+        <span class="op">$match</span><span class="op">$lookup</span><span class="op">$unwind</span>
+        <span class="op">$group</span><span class="op">$project</span><span class="op">$sort</span><span class="op">$limit</span>
+      </div>
+      <code>db.juegos.aggregate([
+  { $match: { precio: { $exists: true } } },
+  { $lookup: { from: "categorias",
+               localField: "categoriaId",
+               foreignField: "_id", as: "cat" } },
+  { $unwind: { path:"$cat",
+               preserveNullAndEmptyArrays: true } },
+  { $group: { _id: "$cat.nombre",
+    totalJuegos: { $sum: 1 },
+    totalVentas: { $sum: "$ventas" },
+    promedioMetacritic: { $avg: "$metacritic" },
+    precioPromedio: { $avg: "$precio" } } },
+  { $sort: { totalVentas: -1 } },
+  { $limit: 15 }
+])</code>
+    </div>
+
+    <div class="agg-card">
+      <h4>AGG 2 — Análisis por plataforma (JOIN + $unwind array)</h4>
+      <div style="margin-bottom:6px;">
+        <span class="op">$match</span><span class="op">$unwind</span><span class="op">$lookup</span>
+        <span class="op">$group</span><span class="op">$project</span><span class="op">$sort</span>
+      </div>
+      <code>db.juegos.aggregate([
+  { $match: { plataformas: { $exists:true,$ne:[] } } },
+  { $unwind: "$plataformas" },
+  { $lookup: { from: "plataformas",
+               localField: "plataformas",
+               foreignField: "_id", as: "plat" } },
+  { $unwind: { path:"$plat",
+               preserveNullAndEmptyArrays: true } },
+  { $group: { _id: "$plat.nombre",
+    totalJuegos: { $sum: 1 },
+    precioPromedio: { $avg: "$precio" },
+    descuentoPromedio: { $avg: "$descuento" } } },
+  { $sort: { totalJuegos: -1 } }
+])</code>
+    </div>
+
+    <div class="agg-card">
+      <h4>AGG 3 — Ranking Top N (configurable)</h4>
+      <div style="margin-bottom:6px;">
+        <span class="op">$match</span><span class="op">$lookup</span><span class="op">$unwind</span>
+        <span class="op">$project</span><span class="op">$sort</span><span class="op">$limit</span>
+      </div>
+      <code>db.juegos.aggregate([
+  { $match: { likes: { $gt: 0 } } },
+  { $lookup: { from: "categorias",
+               localField: "categoriaId",
+               foreignField: "_id", as: "cat" } },
+  { $unwind: { path:"$cat",
+               preserveNullAndEmptyArrays: true } },
+  { $project: {
+    nombre:1, desarrollador:1, likes:1,
+    metacritic:1, ventas:1, calificacion:1,
+    categoria: { $ifNull:["$cat.nombre","Sin cat."] },
+    score: "$likes" } },
+  { $sort: { score: -1 } },
+  { $limit: 10 }
+])</code>
+    </div>
+
+    <div class="agg-card">
+      <h4>AGG 4 — Análisis temporal por año</h4>
+      <div style="margin-bottom:6px;">
+        <span class="op">$match</span><span class="op">$group</span><span class="op">$project</span><span class="op">$sort</span>
+      </div>
+      <code>db.juegos.aggregate([
+  { $match: { fechaLanzamiento: {
+    $exists: true, $type: "date" } } },
+  { $group: {
+    _id: { $year: "$fechaLanzamiento" },
+    totalJuegos: { $sum: 1 },
+    promedioMetacritic: { $avg: "$metacritic" },
+    totalLikes: { $sum: "$likes" },
+    precioPromedio: { $avg: "$precio" },
+    totalVentas: { $sum: "$ventas" } } },
+  { $project: {
+    _id: 0, anio: "$_id", totalJuegos: 1,
+    promedioMetacritic: {
+      $round: ["$promedioMetacritic", 1] } } },
+  { $sort: { anio: 1 } }
+])</code>
+    </div>
+
+    <div class="agg-card">
+      <h4>AGG 5 — Dashboard (estadísticas globales)</h4>
+      <div style="margin-bottom:6px;">
+        <span class="op">$group</span><span class="op">$project</span><span class="op">countDocuments</span>
+      </div>
+      <code>db.juegos.aggregate([
+  { $group: { _id: null,
+    precioPromedio: { $avg: "$precio" },
+    precioMin: { $min: "$precio" },
+    precioMax: { $max: "$precio" },
+    totalLikes: { $sum: "$likes" },
+    totalVentas: { $sum: "$ventas" } } },
+  { $project: { _id: 0,
+    precioPromedio: {
+      $round: ["$precioPromedio", 2] },
+    precioMin: 1, precioMax: 1,
+    totalLikes: 1, totalVentas: 1 } }
+])
+// + countDocuments en juegos, categorias,
+//   plataformas, usuarios, resenas</code>
+    </div>
+
+    <div class="agg-card">
+      <h4>AGG interno — Recalcular calificación de reseñas</h4>
+      <div style="margin-bottom:6px;">
+        <span class="op">$match</span><span class="op">$group</span><span class="op">$avg</span><span class="op">$sum</span>
+      </div>
+      <code>// Se ejecuta automáticamente al crear,
+// editar o eliminar una reseña:
+db.resenas.aggregate([
+  { $match: { juegoId: ObjectId("...") } },
+  { $group: {
+    _id: null,
+    promedio: { $avg: "$puntuacion" },
+    total: { $sum: 1 } } }
+])
+// → actualiza juegos.calificacion
+//   y juegos.numReseñas</code>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ ÍNDICES ═══════════════ -->
+<div class="idx-section">
+  <div class="agg-title">Índices definidos</div>
+  <div class="tbl-wrap">
+    <table class="idx-table">
+      <thead>
+        <tr><th>Colección</th><th>Campos</th><th>Tipo</th><th>Propósito</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>usuarios</strong></td><td>email</td><td>Único</td><td>Evitar emails duplicados, búsqueda rápida en login</td></tr>
+        <tr><td><strong>juegos</strong></td><td>nombre, desarrollador</td><td>Text</td><td>Búsqueda full-text en catálogo</td></tr>
+        <tr><td><strong>juegos</strong></td><td>categoriaId</td><td>Normal</td><td>Filtro por categoría, $lookup en aggregates</td></tr>
+        <tr><td><strong>juegos</strong></td><td>precio</td><td>Normal</td><td>Ordenamiento y filtros de precio</td></tr>
+        <tr><td><strong>juegos</strong></td><td>metacritic</td><td>Desc</td><td>Ordenar por calificación crítica</td></tr>
+        <tr><td><strong>juegos</strong></td><td>likes</td><td>Desc</td><td>Ranking por popularidad (AGG 3)</td></tr>
+        <tr><td><strong>juegos</strong></td><td>fechaLanzamiento</td><td>Desc</td><td>Orden cronológico y AGG por año</td></tr>
+        <tr><td><strong>juegos</strong></td><td>enOferta + descuento</td><td>Compuesto</td><td>Filtro "Solo ofertas" eficiente</td></tr>
+        <tr><td><strong>categorias</strong></td><td>nombre</td><td>Único</td><td>Evitar categorías duplicadas</td></tr>
+        <tr><td><strong>plataformas</strong></td><td>nombre</td><td>Único</td><td>Evitar plataformas duplicadas</td></tr>
+        <tr><td><strong>resenas</strong></td><td>juegoId + usuarioId</td><td>Compuesto único parcial</td><td>Máximo 1 reseña por usuario por juego</td></tr>
+        <tr><td><strong>resenas</strong></td><td>juegoId</td><td>Normal</td><td>Obtener reseñas de un juego</td></tr>
+        <tr><td><strong>resenas</strong></td><td>fecha</td><td>Desc</td><td>Ordenar reseñas por más recientes</td></tr>
+        <tr><td><strong>resenas</strong></td><td>puntuacion</td><td>Normal</td><td>Filtros y aggregates de calificación</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  GamerVault · Electiva IV · MongoDB + Node.js + Express · 5 colecciones · 2 250+ documentos · 14 índices · 5 pipelines aggregate
+</div>
+
+</body>
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GamerVault — Tienda de Videojuegos</title>
+<style>
+:root{
+  --bg:#0d0d14;--bg2:#12121c;--bg3:#1a1a28;--card:#15151f;--border:#252535;
+  --accent:#7c3aed;--accent2:#a855f7;--cyan:#06b6d4;--green:#10b981;
+  --red:#ef4444;--orange:#f97316;--yellow:#fbbf24;--text:#e8e8f0;--muted:#6b6b8a;--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────── */
+.layout{display:flex;flex-direction:row;min-height:100vh;}
+.sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
+.logo{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
+.logo-text{font-size:20px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:9px;letter-spacing:3px;color:var(--muted);font-weight:600;margin-top:2px;}
+.nav-sep{padding:14px 18px 4px;font-size:9px;letter-spacing:2px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+nav a{display:flex;align-items:center;gap:9px;padding:10px 18px;color:var(--muted);
+  text-decoration:none;font-size:13px;font-weight:500;border-left:3px solid transparent;
+  transition:all .15s;cursor:pointer;}
+nav a:hover,nav a.active{color:var(--text);background:rgba(124,58,237,.1);border-left-color:var(--accent);}
+nav a .ico{width:18px;text-align:center;font-size:14px;}
+.admin-link{margin:8px 14px;background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(168,85,247,.1));
+  border:1px solid rgba(124,58,237,.3);border-radius:8px;padding:10px 12px;text-align:center;
+  color:var(--accent2);font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;
+  display:block;transition:all .2s;}
+.admin-link:hover{background:rgba(124,58,237,.25);border-color:var(--accent);}
+
+/* ── MAIN ─────────────────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:13px 24px;
+  display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:40;}
+.topbar h1{font-size:16px;font-weight:700;flex:1;}
+.search{position:relative;}
+.search input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:7px 13px 7px 32px;color:var(--text);font-size:12px;width:210px;outline:none;transition:border-color .2s;}
+.search input:focus{border-color:var(--accent);}
+.search::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;}
+.content{padding:22px 24px;flex:1;}
+section{display:none;}
+section.active{display:block;}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────── */
+.btn{padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* ── STATS CARDS ─────────────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:15px 16px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--cyan));}
+.stat .lbl{font-size:10px;color:var(--muted);letter-spacing:1px;font-weight:700;text-transform:uppercase;}
+.stat .val{font-size:24px;font-weight:900;margin-top:4px;line-height:1;}
+.stat .sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.c-purple .val{color:var(--accent2);}.c-cyan .val{color:var(--cyan);}
+.c-green .val{color:var(--green);}.c-orange .val{color:var(--orange);}.c-yellow .val{color:var(--yellow);}
+
+/* ── FILTERS ─────────────────────────────────────────────────────────── */
+.filters{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px 15px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:15px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;}
+.fg select,.fg input[type=text]{background:var(--bg3);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);padding:6px 9px;font-size:12px;outline:none;}
+.fg select:focus{border-color:var(--accent);}
+
+/* ── GAME GRID ───────────────────────────────────────────────────────── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:13px;}
+.gcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s;}
+.gcard:hover{transform:translateY(-3px);border-color:var(--accent);}
+.gcard .thumb{height:100px;background:linear-gradient(135deg,#1e1a38,#2a1256);
+  display:flex;align-items:center;justify-content:center;font-size:34px;}
+.gcard .info{padding:10px 11px;}
+.gcard .gname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.gcard .gdev{font-size:10px;color:var(--muted);margin-bottom:6px;}
+.gcard .price-row{display:flex;align-items:center;gap:6px;}
+.gcard .price{font-size:16px;font-weight:900;color:var(--green);}
+.gcard .price.free{color:var(--cyan);}
+.gcard .price-old{font-size:10px;color:var(--muted);text-decoration:line-through;}
+.badges{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:5px;}
+.badge{display:inline-flex;align-items:center;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700;}
+.b-off{background:var(--orange);color:#fff;}.b-meta{background:var(--bg3);color:var(--cyan);border:1px solid var(--border);}
+.b-rat{background:rgba(16,185,129,.2);color:var(--green);}
+
+/* ── DETALLE ─────────────────────────────────────────────────────────── */
+.detalle-hero{background:linear-gradient(135deg,#1e1a38,#2a1256);border-radius:var(--r);
+  padding:26px;display:flex;gap:18px;align-items:flex-start;margin-bottom:18px;border:1px solid var(--border);}
+.detalle-icon{font-size:56px;width:84px;height:84px;display:flex;align-items:center;
+  justify-content:center;background:rgba(0,0,0,.3);border-radius:10px;flex-shrink:0;}
+.detalle-info h2{font-size:22px;font-weight:900;margin-bottom:5px;}
+.detalle-info .dev{color:var(--muted);font-size:13px;margin-bottom:10px;}
+.precio-big{font-size:30px;font-weight:900;color:var(--green);}
+.precio-big.free{color:var(--cyan);}
+.resenas-section{margin-top:18px;}
+.resenas-section h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent2);}
+.resena-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:13px 15px;margin-bottom:9px;}
+.resena-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.resena-user{font-weight:700;font-size:13px;}
+.resena-fecha{font-size:10px;color:var(--muted);margin-left:auto;}
+.estrellas{color:var(--yellow);font-size:13px;}
+.resena-texto{font-size:12px;color:#b0b0c8;line-height:1.6;}
+
+/* ── CHARTS ─────────────────────────────────────────────────────────── */
+.charts2{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:18px;}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.cbox-header{display:flex;align-items:baseline;gap:8px;margin-bottom:13px;}
+.cbox-header span:first-child{font-size:13px;font-weight:700;color:var(--accent2);}
+.cbox-sub{font-size:10px;color:var(--muted);}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;font-size:11px;}
+.bar-lbl{width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);}
+.bar-track{flex:1;background:var(--bg3);border-radius:4px;height:7px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--cyan));transition:width .6s;}
+.bar-val{width:70px;text-align:right;font-weight:600;font-size:11px;}
+.rank-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(37,37,53,.5);}
+.rank-row:last-child{border-bottom:none;}
+.rank-pos{font-size:17px;font-weight:900;width:24px;color:var(--muted);}
+.rank-pos.g{color:var(--yellow);}.rank-pos.s{color:#9ca3af;}.rank-pos.b{color:var(--orange);}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-dev{font-size:10px;color:var(--muted);}
+.rank-score{font-size:16px;font-weight:900;color:var(--cyan);}
+
+/* ── PIPELINE BAR ─────────────────────────────────────────────────────── */
+.pipeline-bar{display:flex;align-items:center;flex-wrap:wrap;gap:4px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px 14px;margin-bottom:18px;}
+.pipe-step{font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;
+  background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.4);color:var(--accent2);white-space:nowrap;}
+.pipe-arrow{font-size:12px;color:var(--border);font-weight:700;}
+.pipe-select{background:var(--bg3);border:1px solid rgba(124,58,237,.4);
+  color:var(--text);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:600;outline:none;cursor:pointer;}
+
+/* ── TABLA ───────────────────────────────────────────────────────────── */
+.tbl-wrap{border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--bg3);padding:9px 12px;text-align:left;font-size:9px;
+  letter-spacing:1px;color:var(--muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid rgba(37,37,53,.6);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(124,58,237,.04);}
+tbody td{padding:9px 12px;vertical-align:middle;}
+
+/* ── PODIO CARDS ─────────────────────────────────────────────────────── */
+.podio-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 13px;text-align:center;transition:transform .2s;}
+.podio-card:hover{transform:translateY(-3px);}
+.podio-card.oro{border-color:var(--yellow);background:rgba(251,191,36,.05);}
+.podio-card.plata{border-color:#9ca3af;background:rgba(156,163,175,.05);}
+.podio-card.bronce{border-color:var(--orange);background:rgba(249,115,22,.05);}
+.podio-card .pos-medal{font-size:28px;margin-bottom:5px;}
+.podio-card .pos-name{font-size:13px;font-weight:800;margin-bottom:2px;line-height:1.3;}
+.podio-card .pos-dev{font-size:10px;color:var(--muted);margin-bottom:8px;}
+.podio-card .pos-score{font-size:26px;font-weight:900;line-height:1;}
+.podio-card.oro .pos-score{color:var(--yellow);}
+.podio-card.plata .pos-score{color:#9ca3af;}
+.podio-card.bronce .pos-score{color:var(--orange);}
+.podio-card .pos-cat{font-size:9px;background:rgba(124,58,237,.2);color:var(--accent2);
+  border-radius:4px;padding:2px 6px;display:inline-block;margin-top:5px;}
+
+/* ── PAGINATION ──────────────────────────────────────────────────────── */
+.pag{display:flex;align-items:center;gap:5px;margin-top:18px;justify-content:center;flex-wrap:wrap;}
+.pag button{background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:6px 11px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s;}
+.pag button:hover,.pag button.on{background:var(--accent);border-color:var(--accent);}
+.pag button:disabled{opacity:.35;cursor:default;}
+.pag .pinfo{font-size:11px;color:var(--muted);}
+
+/* ── TOAST ───────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:11px 16px;font-size:12px;z-index:200;
+  transform:translateY(70px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green);}.toast.err{border-color:var(--red);}
+.loader{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--muted);gap:8px;}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .6s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:44px 20px;color:var(--muted);}
+.empty .e{font-size:40px;margin-bottom:8px;}
+
+/* ── HERO BANNER ─────────────────────────────────────────────────────── */
+.hero{
+  background:linear-gradient(135deg,#1a0a2e 0%,#0d1b3e 50%,#0d0d14 100%);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:28px 28px;margin-bottom:22px;position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'🎮';position:absolute;right:30px;top:50%;transform:translateY(-50%);
+  font-size:80px;opacity:.08;
+}
+.hero h2{font-size:26px;font-weight:900;margin-bottom:6px;
+  background:linear-gradient(135deg,var(--accent2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{font-size:13px;color:var(--muted);max-width:500px;line-height:1.6;}
+.hero-stats{display:flex;gap:24px;margin-top:16px;}
+.hero-stat{text-align:center;}
+.hero-stat .hv{font-size:22px;font-weight:900;color:var(--accent2);}
+.hero-stat .hl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .charts2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-text">GAMER<br>VAULT</div>
+      <div class="logo-sub">TIENDA DE JUEGOS</div>
+    </div>
+    <nav>
+      <div class="nav-sep">Explorar</div>
+      <a class="active" onclick="go('inicio')"><span class="ico">🏠</span> Inicio</a>
+      <a onclick="go('catalogo')"><span class="ico">🎮</span> Catálogo</a>
+      <a onclick="go('ofertas')"><span class="ico">🏷️</span> Ofertas</a>
+      <div class="nav-sep">Estadísticas</div>
+      <a onclick="go('q-cat')"><span class="ico">📈</span> Por Categoría</a>
+      <a onclick="go('q-plat')"><span class="ico">🖥️</span> Por Plataforma</a>
+      <a onclick="go('q-rank')"><span class="ico">🏆</span> Rankings</a>
+      <a onclick="go('q-anio')"><span class="ico">📅</span> Por Año</a>
+    </nav>
+    <div style="margin-top:auto;padding:14px;">
+      <a href="/index.html" class="admin-link">🔐 Acceso Administrador</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="sec-title">Inicio</h1>
+      <div class="search">
+        <input type="text" id="gsearch" placeholder="Buscar juego..." oninput="onSearch()">
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- INICIO -->
+      <section id="s-inicio" class="active">
+        <div class="hero">
+          <h2>Bienvenido a GamerVault</h2>
+          <p>Explora más de 1.000 videojuegos. Consulta precios, reseñas, rankings y estadísticas — sin registrarte.</p>
+          <div class="hero-stats" id="hero-stats">
+            <div class="hero-stat"><div class="hv">—</div><div class="hl">Juegos</div></div>
+            <div class="hero-stat"><div class="hv">—</div><div class="hl">Categorías</div></div>
+            <div class="hero-stat"><div class="hv">—</div><div class="hl">En Oferta</div></div>
+            <div class="hero-stat"><div class="hv">—</div><div class="hl">Reseñas</div></div>
+          </div>
+        </div>
+        <div class="stats" id="dash-stats"></div>
+        <div class="charts2">
+          <div class="cbox">
+            <div class="cbox-header"><span>📈 Ventas por Categoría</span><span class="cbox-sub">top 5</span></div>
+            <div id="dc-cat"></div>
+          </div>
+          <div class="cbox">
+            <div class="cbox-header"><span>🏆 Top 8 por Likes</span><span class="cbox-sub">más populares</span></div>
+            <div id="dc-rank"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATÁLOGO -->
+      <section id="s-catalogo">
+        <div class="filters">
+          <div class="fg"><label>CATEGORÍA</label>
+            <select id="f-cat" onchange="loadCat()"><option value="">Todas</option></select>
+          </div>
+          <div class="fg"><label>ORDENAR</label>
+            <select id="f-orden" onchange="loadCat()">
+              <option value="">Más recientes</option>
+              <option value="precio_asc">Precio ↑</option>
+              <option value="precio_desc">Precio ↓</option>
+              <option value="metacritic">Metacritic ↓</option>
+              <option value="likes">Más populares</option>
+              <option value="nombre">Nombre A-Z</option>
+            </select>
+          </div>
+          <div class="fg" style="flex-direction:row;align-items:center;gap:6px;padding-top:14px;">
+            <input type="checkbox" id="f-oferta" onchange="loadCat()">
+            <label style="font-size:12px;color:var(--text);">Solo ofertas</label>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="resetF()">Limpiar</button>
+        </div>
+        <div id="cat-grid" class="game-grid"></div>
+        <div class="pag" id="cat-pag"></div>
+      </section>
+
+      <!-- OFERTAS -->
+      <section id="s-ofertas">
+        <div style="background:linear-gradient(135deg,rgba(249,115,22,.15),rgba(251,191,36,.1));
+          border:1px solid rgba(249,115,22,.3);border-radius:var(--r);padding:16px 20px;margin-bottom:18px;">
+          <div style="font-size:20px;font-weight:900;color:var(--orange);">🏷️ Ofertas Activas</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">Juegos con descuento — ordenados por mayor descuento</div>
+        </div>
+        <div id="ofertas-grid" class="game-grid"></div>
+        <div class="pag" id="ofertas-pag"></div>
+      </section>
+
+      <!-- DETALLE -->
+      <section id="s-detalle">
+        <button class="btn btn-ghost btn-sm" onclick="history.back();go(_prevSec||'catalogo')" style="margin-bottom:14px;">← Volver</button>
+        <div id="detalle-content"></div>
+      </section>
+
+      <!-- AGGREGATE 1 — Por Categoría -->
+      <section id="s-q-cat">
+        <div class="pipeline-bar">
+          <div class="pipe-step">🔍 $match</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔗 $lookup</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">📂 $unwind</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">📦 $group</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🎨 $project</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔽 $sort</div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+            <label style="font-size:11px;color:var(--muted);">Top</label>
+            <select id="q-cat-top" onchange="loadQCat()" class="pipe-select">
+              <option value="5">5</option><option value="8">8</option><option value="15" selected>15</option>
+            </select>
+          </div>
+        </div>
+        <div id="qc-kpis" class="stats" style="margin-bottom:18px;"></div>
+        <div class="charts2" style="margin-bottom:15px;">
+          <div class="cbox">
+            <div class="cbox-header"><span>💰 Ventas Totales</span><span class="cbox-sub">por categoría</span></div>
+            <div id="qc-ventas"></div>
+          </div>
+          <div class="cbox">
+            <div class="cbox-header"><span>⭐ Metacritic Promedio</span><span class="cbox-sub">calidad por género</span></div>
+            <div id="qc-meta"></div>
+          </div>
+        </div>
+        <div class="cbox" style="margin-bottom:15px;">
+          <div class="cbox-header"><span>💵 Precio Promedio</span><span class="cbox-sub">USD por categoría</span></div>
+          <div id="qc-precio"></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Categoría</th><th>🎮 Juegos</th><th>💰 Ventas</th><th>⭐ Metacritic</th><th>💵 Precio Avg</th><th>🏷️ En Oferta</th></tr></thead>
+            <tbody id="qc-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 2 — Por Plataforma -->
+      <section id="s-q-plat">
+        <div class="pipeline-bar">
+          <div class="pipe-step">📂 $unwind <span style="color:var(--cyan);font-size:9px;">(array)</span></div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔗 $lookup</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">📦 $group</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🎨 $project</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔽 $sort</div>
+        </div>
+        <div id="qp-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;margin-bottom:18px;"></div>
+        <div class="cbox" style="margin-bottom:15px;">
+          <div class="cbox-header"><span>🎯 Distribución de Juegos</span><span class="cbox-sub">por plataforma</span></div>
+          <div id="qp-chart"></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Plataforma</th><th>Fabricante</th><th>Tipo</th><th>Juegos</th><th>Precio Avg</th><th>Precio Min</th><th>Precio Max</th><th>Desc. Avg</th></tr></thead>
+            <tbody id="qp-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 3 — Rankings -->
+      <section id="s-q-rank">
+        <div class="pipeline-bar">
+          <div class="pipe-step">🔍 $match</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔗 $lookup</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🎨 $project</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔽 $sort</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">✂️ $limit</div>
+          <div style="margin-left:auto;display:flex;gap:6px;">
+            <select id="r-crit" onchange="loadRank()" class="pipe-select">
+              <option value="likes">👍 Likes</option>
+              <option value="ventas">💰 Ventas</option>
+              <option value="metacritic">⭐ Metacritic</option>
+            </select>
+            <select id="r-top" onchange="loadRank()" class="pipe-select">
+              <option value="10">Top 10</option>
+              <option value="20">Top 20</option>
+              <option value="50">Top 50</option>
+            </select>
+          </div>
+        </div>
+        <div id="r-podio3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;"></div>
+        <div class="charts2">
+          <div class="cbox">
+            <div class="cbox-header"><span>🏆 Ranking completo</span><span class="cbox-sub" id="r-subtitle">por likes</span></div>
+            <div id="r-lista"></div>
+          </div>
+          <div class="cbox">
+            <div class="cbox-header"><span>📊 Comparativa visual</span><span class="cbox-sub">barras proporcionales</span></div>
+            <div id="r-bars"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 4 — Por Año -->
+      <section id="s-q-anio">
+        <div class="pipeline-bar">
+          <div class="pipe-step">🔍 $match</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">📦 $group <span style="color:var(--yellow);font-size:9px;">($year)</span></div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🎨 $project</div><div class="pipe-arrow">→</div>
+          <div class="pipe-step">🔽 $sort</div>
+        </div>
+        <div id="qa-kpis" class="stats" style="margin-bottom:18px;"></div>
+        <div class="charts2" style="margin-bottom:15px;">
+          <div class="cbox">
+            <div class="cbox-header"><span>📅 Lanzamientos por Año</span><span class="cbox-sub">cantidad de títulos</span></div>
+            <div id="qa-chart"></div>
+          </div>
+          <div class="cbox">
+            <div class="cbox-header"><span>⭐ Calidad por Era</span><span class="cbox-sub">metacritic promedio</span></div>
+            <div id="qa-meta"></div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Año</th><th>🎮 Juegos</th><th>⭐ Metacritic</th><th>👍 Likes</th><th>💵 Precio Avg</th><th>💰 Ventas</th></tr></thead>
+            <tbody id="qa-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let cats=[], catPag=1, ofertasPag=1, stimer, _prevSec='catalogo';
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+const fmt = n => n!=null ? Number(n).toLocaleString('es-CO') : '—';
+const price = p => p===0 ? 'GRATIS' : '$'+Number(p).toFixed(2);
+const stars = n => '★'.repeat(Math.round(n||0))+'☆'.repeat(5-Math.round(n||0));
+const fmtF = f => new Date(f).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+
+async function api(url){
+  const r = await fetch(url);
+  if(!r.ok){ const e=await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error); }
+  return r.json();
+}
+
+function toast(msg,type='ok'){
+  const t=$('toast');
+  t.textContent=(type==='ok'?'✅ ':'❌ ')+msg;
+  t.className=`toast show ${type}`;
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function pag(page,total,fn){
+  if(total<=1) return '';
+  const max=Math.min(7,total), start=Math.max(1,Math.min(total-max+1,page-3));
+  let h=`<button onclick="${fn}(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  for(let i=0;i<max;i++){const p=start+i;h+=`<button class="${p===page?'on':''}" onclick="${fn}(${p})">${p}</button>`;}
+  h+=`<button onclick="${fn}(${page+1})" ${page>=total?'disabled':''}>›</button>`;
+  h+=`<span class="pinfo">Pág ${page}/${total}</span>`;
+  return h;
+}
+
+function bars(el,data,vk,lk,color='linear-gradient(90deg,var(--accent),var(--cyan))'){
+  if(!data||!data.length){el.innerHTML='<div class="empty"><div class="e">📭</div>Sin datos</div>';return;}
+  const max=Math.max(...data.map(d=>d[vk]||0))||1;
+  el.innerHTML=data.map(d=>`
+    <div class="bar-row">
+      <div class="bar-lbl" title="${d[lk]}">${d[lk]||'—'}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d[vk]/max*100).toFixed(1)}%;background:${color}"></div></div>
+      <div class="bar-val">${fmt(d[vk])}</div>
+    </div>`).join('');
+}
+
+function getIcon(g=''){
+  if(!g) return '🎮';
+  if(g.includes('Terror')||g.includes('Horror')) return '👻';
+  if(g.includes('Carrera')) return '🏎️';
+  if(g.includes('Deport')) return '⚽';
+  if(g.includes('Pelea')) return '🥊';
+  if(g.includes('Shoot')) return '🔫';
+  if(g.includes('RPG')||g.includes('Rol')) return '🧙';
+  if(g.includes('Plataform')) return '🍄';
+  if(g.includes('Estrat')) return '♟️';
+  if(g.includes('Indie')) return '🎨';
+  if(g.includes('Battle')||g.includes('Royale')) return '🏆';
+  if(g.includes('Simulac')) return '🛫';
+  if(g.includes('Aventura')) return '🗺️';
+  return '🎮';
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+const TITLES={
+  inicio:'Inicio',catalogo:'Catálogo de Juegos',ofertas:'Ofertas y Descuentos',
+  detalle:'Detalle del Juego','q-cat':'Aggregate 1 — Por Categoría',
+  'q-plat':'Aggregate 2 — Por Plataforma','q-rank':'Aggregate 3 — Rankings',
+  'q-anio':'Aggregate 4 — Por Año',
+};
+function go(id, fromDetalle=false){
+  if(!fromDetalle && id!=='detalle') _prevSec=id;
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  $('s-'+id).classList.add('active');
+  $('sec-title').textContent=TITLES[id]||id;
+  const navLinks=document.querySelectorAll('nav a');
+  const map={inicio:0,catalogo:1,ofertas:2,'q-cat':4,'q-plat':5,'q-rank':6,'q-anio':7};
+  if(map[id]!==undefined && navLinks[map[id]]) navLinks[map[id]].classList.add('active');
+  if(id==='inicio')   loadInicio();
+  if(id==='catalogo') loadCat();
+  if(id==='ofertas')  loadOfertas();
+  if(id==='q-cat')    loadQCat();
+  if(id==='q-plat')   loadQPlat();
+  if(id==='q-rank')   loadRank();
+  if(id==='q-anio')   loadQAnio();
+}
+
+// ─── INICIO ───────────────────────────────────────────────────────────────────
+async function loadInicio(){
+  try{
+    const [d,cat,rank]=await Promise.all([
+      api('/api/stats/dashboard'),
+      api('/api/stats/por-categoria?top=5'),
+      api('/api/stats/ranking?criterio=likes&top=8'),
+    ]);
+
+    // Hero stats
+    $('hero-stats').innerHTML=`
+      <div class="hero-stat"><div class="hv">${fmt(d.totalJuegos)}</div><div class="hl">Juegos</div></div>
+      <div class="hero-stat"><div class="hv">${fmt(d.totalCats)}</div><div class="hl">Categorías</div></div>
+      <div class="hero-stat"><div class="hv">${fmt(d.enOferta)}</div><div class="hl">En Oferta</div></div>
+      <div class="hero-stat"><div class="hv">${fmt(d.totalResenas||0)}</div><div class="hl">Reseñas</div></div>`;
+
+    // KPI cards
+    $('dash-stats').innerHTML=`
+      <div class="stat c-purple"><div class="lbl">Total Juegos</div><div class="val">${fmt(d.totalJuegos)}</div><div class="sub">${d.totalCats} categorías · ${d.totalPlats} plataformas</div></div>
+      <div class="stat c-cyan"><div class="lbl">Precio Promedio</div><div class="val">$${d.precioPromedio||0}</div><div class="sub">Min $${(d.precioMin||0).toFixed(2)} / Max $${(d.precioMax||0).toFixed(2)}</div></div>
+      <div class="stat c-green"><div class="lbl">Total Likes</div><div class="val">${fmt(d.totalLikes)}</div></div>
+      <div class="stat c-orange"><div class="lbl">En Oferta</div><div class="val">${fmt(d.enOferta)}</div><div class="sub">con descuento activo</div></div>
+      <div class="stat"><div class="lbl">Total Ventas</div><div class="val">${fmt(d.totalVentas)}</div></div>`;
+
+    bars($('dc-cat'),cat,'totalVentas','categoria');
+    $('dc-rank').innerHTML=rank.map(j=>`
+      <div class="rank-row">
+        <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
+        <div class="rank-info"><div class="rank-name">${j.nombre}</div><div class="rank-dev">${j.desarrollador||'—'}</div></div>
+        <div class="rank-score">${fmt(j.score)} ♥</div>
+      </div>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── CATÁLOGO ─────────────────────────────────────────────────────────────────
+function gameCard(j){
+  return `<div class="gcard" onclick="verDetalle('${j._id}')">
+    <div class="thumb">${getIcon(j.genero||'')}</div>
+    <div class="info">
+      <div class="badges">
+        ${j.enOferta?`<span class="badge b-off">-${j.descuento}%</span>`:''}
+        ${j.metacritic>0?`<span class="badge b-meta">⭐${j.metacritic}</span>`:''}
+        ${j.numReseñas>0?`<span class="badge b-rat">${stars(j.calificacion)} (${j.numReseñas})</span>`:''}
+      </div>
+      <div class="gname" title="${j.nombre}">${j.nombre}</div>
+      <div class="gdev">${j.desarrollador||'—'}</div>
+      <div class="price-row">
+        <div class="price ${j.precio===0?'free':''}">${price(j.precio)}</div>
+        ${j.enOferta?`<div class="price-old">$${(j.precioOriginal||0).toFixed(2)}</div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadCat(p=1){
+  catPag=p;
+  const cat=$('f-cat').value, orden=$('f-orden').value;
+  const oferta=$('f-oferta').checked, buscar=$('gsearch').value;
+  let url=`/api/juegos?page=${p}&limit=24`;
+  if(cat) url+=`&categoria=${cat}`;
+  if(orden) url+=`&orden=${orden}`;
+  if(oferta) url+=`&oferta=true`;
+  if(buscar) url+=`&buscar=${encodeURIComponent(buscar)}`;
+  $('cat-grid').innerHTML='<div class="loader"><div class="spin"></div> Cargando...</div>';
+  try{
+    const d=await api(url);
+    $('cat-grid').innerHTML=d.juegos.length
+      ? d.juegos.map(gameCard).join('')
+      : '<div class="empty"><div class="e">🎮</div><p>No se encontraron juegos</p></div>';
+    $('cat-pag').innerHTML=pag(p,d.totalPages,'loadCat');
+  }catch(e){ toast(e.message,'err'); }
+}
+function resetF(){ $('f-cat').value='';$('f-orden').value='';$('f-oferta').checked=false;loadCat(); }
+
+// ─── OFERTAS ──────────────────────────────────────────────────────────────────
+async function loadOfertas(p=1){
+  ofertasPag=p;
+  const buscar=$('gsearch').value;
+  let url=`/api/juegos?page=${p}&limit=24&oferta=true&orden=precio_asc`;
+  if(buscar) url+=`&buscar=${encodeURIComponent(buscar)}`;
+  $('ofertas-grid').innerHTML='<div class="loader"><div class="spin"></div> Cargando...</div>';
+  try{
+    const d=await api(url);
+    $('ofertas-grid').innerHTML=d.juegos.length
+      ? d.juegos.map(gameCard).join('')
+      : '<div class="empty"><div class="e">🏷️</div><p>No hay ofertas activas</p></div>';
+    $('ofertas-pag').innerHTML=pag(p,d.totalPages,'loadOfertas');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── DETALLE ──────────────────────────────────────────────────────────────────
+async function verDetalle(id){
+  go('detalle',true);
+  $('detalle-content').innerHTML='<div class="loader"><div class="spin"></div> Cargando...</div>';
+  try{
+    const [j,resenas]=await Promise.all([
+      api('/api/juegos/'+id),
+      api('/api/juegos/'+id+'/resenas'),
+    ]);
+    $('detalle-content').innerHTML=`
+      <div class="detalle-hero">
+        <div class="detalle-icon">${getIcon(j.genero||'')}</div>
+        <div class="detalle-info" style="flex:1">
+          <h2>${j.nombre}</h2>
+          <div class="dev">${j.desarrollador||'—'} · ${j.genero||'—'}</div>
+          <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;">
+            ${j.enOferta?`<span class="badge b-off">-${j.descuento}% OFERTA</span>`:''}
+            ${j.metacritic>0?`<span class="badge b-meta">Metacritic ${j.metacritic}</span>`:''}
+            ${j.numReseñas>0?`<span class="badge b-rat">${stars(j.calificacion)} ${j.calificacion} (${j.numReseñas} reseñas)</span>`:''}
+            <span class="badge" style="background:var(--bg3);border:1px solid var(--border);">${j.clasificacion||'E'}</span>
+          </div>
+          <div class="precio-big ${j.precio===0?'free':''}">${price(j.precio)}</div>
+          ${j.enOferta?`<div style="color:var(--muted);font-size:12px;margin-top:2px;">Precio original: $${(j.precioOriginal||0).toFixed(2)}</div>`:''}
+          ${j.url?`<div style="margin-top:13px;"><a href="${j.url}" target="_blank" class="btn btn-primary btn-sm">🛒 Comprar ahora</a></div>`:''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-bottom:18px;">
+        <div class="stat"><div class="lbl">Likes</div><div class="val" style="font-size:20px;">${fmt(j.likes)}</div></div>
+        <div class="stat"><div class="lbl">Stock</div><div class="val" style="font-size:20px;">${fmt(j.stock)}</div></div>
+        <div class="stat"><div class="lbl">Calificación</div><div class="val" style="font-size:20px;color:var(--yellow);">${j.calificacion||'—'} ★</div></div>
+      </div>
+      <div class="resenas-section">
+        <h3>💬 Reseñas de usuarios (${resenas.length})</h3>
+        ${resenas.length
+          ? resenas.map(r=>`
+              <div class="resena-card">
+                <div class="resena-header">
+                  <div class="resena-user">👤 ${r.usuarioNombre||'Usuario'}</div>
+                  <div class="estrellas">${'★'.repeat(r.puntuacion)}${'☆'.repeat(5-r.puntuacion)}</div>
+                  <div class="resena-fecha">${fmtF(r.fecha)}</div>
+                </div>
+                <div class="resena-texto">${r.comentario}</div>
+              </div>`).join('')
+          : '<div class="empty"><div class="e">💬</div><p>Aún no hay reseñas para este juego</p></div>'}
+        <div style="margin-top:12px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--muted);text-align:center;">
+          ✍️ ¿Quieres escribir una reseña? <a href="/index.html" style="color:var(--accent2);font-weight:700;">Crea una cuenta</a> — es gratis.
+        </div>
+      </div>`;
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── AGGREGATE 1 ──────────────────────────────────────────────────────────────
+async function loadQCat(){
+  const top=$('q-cat-top').value;
+  try{
+    const d=await api(`/api/stats/por-categoria?top=${top}`);
+    const totalVentas=d.reduce((s,r)=>s+r.totalVentas,0);
+    const totalJuegos=d.reduce((s,r)=>s+r.totalJuegos,0);
+    const mejorMeta=d.reduce((m,r)=>r.promedioMetacritic>m.v?{v:r.promedioMetacritic,n:r.categoria}:m,{v:0,n:''});
+    const masOferta=d.reduce((m,r)=>r.juegoEnOferta>m.v?{v:r.juegoEnOferta,n:r.categoria}:m,{v:0,n:''});
+    $('qc-kpis').innerHTML=`
+      <div class="stat c-purple"><div class="lbl">Categorías</div><div class="val">${d.length}</div><div class="sub">analizadas</div></div>
+      <div class="stat c-green"><div class="lbl">Ventas Totales</div><div class="val">${fmt(totalVentas)}</div><div class="sub">todas las categorías</div></div>
+      <div class="stat c-cyan"><div class="lbl">Total Juegos</div><div class="val">${fmt(totalJuegos)}</div><div class="sub">en catálogo</div></div>
+      <div class="stat c-yellow"><div class="lbl">Mejor Metacritic</div><div class="val">${mejorMeta.v}</div><div class="sub">${mejorMeta.n}</div></div>
+      <div class="stat c-orange"><div class="lbl">Más en Oferta</div><div class="val">${masOferta.v}</div><div class="sub">${masOferta.n}</div></div>`;
+    bars($('qc-ventas'),d,'totalVentas','categoria');
+    bars($('qc-meta'),d,'promedioMetacritic','categoria','linear-gradient(90deg,var(--yellow),var(--orange))');
+    bars($('qc-precio'),d,'precioPromedio','categoria','linear-gradient(90deg,var(--green),var(--cyan))');
+    const maxV=Math.max(...d.map(r=>r.totalVentas))||1;
+    $('qc-body').innerHTML=d.map(r=>{
+      const pct=r.totalVentas/maxV;
+      const heat=pct>0.8?'var(--green)':pct>0.5?'var(--cyan)':pct>0.3?'var(--accent2)':'var(--muted)';
+      return `<tr>
+        <td><strong>${r.icono||'🎮'} ${r.categoria}</strong></td>
+        <td>${fmt(r.totalJuegos)}</td>
+        <td style="color:${heat};font-weight:700;">${fmt(r.totalVentas)}</td>
+        <td><span style="color:var(--yellow);font-weight:700;">${r.promedioMetacritic}</span></td>
+        <td>$${r.precioPromedio}</td>
+        <td>${r.juegoEnOferta>0?`<span class="badge b-off">${fmt(r.juegoEnOferta)}</span>`:'—'}</td>
+      </tr>`;}).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── AGGREGATE 2 ──────────────────────────────────────────────────────────────
+async function loadQPlat(){
+  try{
+    const d=await api('/api/stats/por-plataforma');
+    const platIcon=(nombre)=>{
+      if(!nombre||nombre==='Sin plataforma') return {icon:'🖥️',cls:'pc'};
+      const n=nombre.toLowerCase();
+      if(n.includes('playstation')||n.includes('ps')) return {icon:'🎮',cls:'sony'};
+      if(n.includes('xbox')) return {icon:'🟢',cls:'microsoft'};
+      if(n.includes('nintendo')||n.includes('switch')) return {icon:'🔴',cls:'nintendo'};
+      if(n.includes('pc')) return {icon:'💻',cls:'pc'};
+      if(n.includes('ios')||n.includes('android')) return {icon:'📱',cls:'movil'};
+      return {icon:'🕹️',cls:'pc'};
+    };
+    const platStyles={
+      sony:'border-top:3px solid #006fcd;',
+      microsoft:'border-top:3px solid #107c10;',
+      nintendo:'border-top:3px solid #e60012;',
+      pc:'border-top:3px solid var(--accent);',
+      movil:'border-top:3px solid var(--orange);',
+    };
+    const real=d.filter(r=>r.plataforma&&r.plataforma!=='Sin plataforma');
+    $('qp-cards').innerHTML=real.slice(0,8).map(r=>{
+      const {icon,cls}=platIcon(r.plataforma);
+      return `<div class="stat" style="${platStyles[cls]||''}cursor:default;">
+        <div style="font-size:26px;margin-bottom:6px;">${icon}</div>
+        <div style="font-size:12px;font-weight:800;margin-bottom:1px;">${r.plataforma}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">${r.fabricante||'—'} · ${r.tipo||'—'}</div>
+        <div class="val" style="font-size:22px;color:var(--accent2);">${fmt(r.totalJuegos)}</div>
+        <div class="sub">juegos · avg $${r.precioPromedio}</div>
+      </div>`;}).join('');
+    bars($('qp-chart'),real,'totalJuegos','plataforma');
+    $('qp-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.plataforma}</strong></td>
+        <td>${r.fabricante||'—'}</td><td>${r.tipo||'—'}</td>
+        <td style="font-weight:700;">${fmt(r.totalJuegos)}</td>
+        <td>$${r.precioPromedio}</td>
+        <td style="color:var(--green);">$${r.precioMin}</td>
+        <td style="color:var(--red);">$${r.precioMax}</td>
+        <td>${r.descuentoPromedio}%</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── AGGREGATE 3 ──────────────────────────────────────────────────────────────
+async function loadRank(){
+  const crit=$('r-crit').value, top=$('r-top').value;
+  const labels={likes:'likes',ventas:'ventas',metacritic:'Metacritic'};
+  const subEl=$('r-subtitle'); if(subEl) subEl.textContent='por '+labels[crit];
+  try{
+    const d=await api(`/api/stats/ranking?criterio=${crit}&top=${top}`);
+    const medals=['🥇','🥈','🥉'], classes=['oro','plata','bronce'];
+    $('r-podio3').innerHTML=d.slice(0,3).map((j,i)=>`
+      <div class="podio-card ${classes[i]}">
+        <div class="pos-medal">${medals[i]}</div>
+        <div class="pos-name">${j.nombre}</div>
+        <div class="pos-dev">${j.desarrollador||'—'}</div>
+        <div class="pos-score">${fmt(j.score)}</div>
+        <div class="pos-cat">${j.categoria||'—'}</div>
+      </div>`).join('');
+    $('r-lista').innerHTML=d.map(j=>`
+      <div class="rank-row">
+        <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
+        <div class="rank-info"><div class="rank-name">${j.nombre}</div><div class="rank-dev">${j.desarrollador||'—'} · ${j.categoria||'—'}</div></div>
+        <div class="rank-score">${fmt(j.score)}</div>
+      </div>`).join('');
+    bars($('r-bars'),d.slice(0,10),'score','nombre',
+      crit==='metacritic'?'linear-gradient(90deg,var(--yellow),var(--orange))':'linear-gradient(90deg,var(--accent),var(--cyan))');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── AGGREGATE 4 ──────────────────────────────────────────────────────────────
+async function loadQAnio(){
+  try{
+    const d=await api('/api/stats/por-anio');
+    const mejorAnio=d.reduce((m,r)=>r.totalJuegos>m.j?{j:r.totalJuegos,a:r.anio}:m,{j:0,a:0});
+    const mejorMeta=d.reduce((m,r)=>r.promedioMetacritic>m.v?{v:r.promedioMetacritic,a:r.anio}:m,{v:0,a:0});
+    const totalAll=d.reduce((s,r)=>s+r.totalJuegos,0);
+    const ultAnio=d[d.length-1];
+    $('qa-kpis').innerHTML=`
+      <div class="stat c-purple"><div class="lbl">Años con data</div><div class="val">${d.length}</div><div class="sub">${d[0]?.anio||'—'} → ${d[d.length-1]?.anio||'—'}</div></div>
+      <div class="stat c-green"><div class="lbl">Total Juegos</div><div class="val">${fmt(totalAll)}</div></div>
+      <div class="stat c-cyan"><div class="lbl">Año más activo</div><div class="val">${mejorAnio.a}</div><div class="sub">${fmt(mejorAnio.j)} títulos</div></div>
+      <div class="stat c-yellow"><div class="lbl">Mejor Metacritic</div><div class="val">${mejorMeta.v}</div><div class="sub">promedio en ${mejorMeta.a}</div></div>
+      ${ultAnio?`<div class="stat c-orange"><div class="lbl">Último año</div><div class="val">${ultAnio.anio}</div><div class="sub">${fmt(ultAnio.totalJuegos)} juegos</div></div>`:''}`;
+    bars($('qa-chart'),d,'totalJuegos','anio','linear-gradient(90deg,var(--cyan),var(--green))');
+    bars($('qa-meta'),d,'promedioMetacritic','anio','linear-gradient(90deg,var(--yellow),var(--orange))');
+    $('qa-body').innerHTML=d.map(r=>{
+      const c=r.promedioMetacritic>=85?'var(--green)':r.promedioMetacritic>=70?'var(--cyan)':'var(--muted)';
+      return `<tr>
+        <td><strong>${r.anio}</strong></td>
+        <td style="font-weight:700;">${fmt(r.totalJuegos)}</td>
+        <td><span style="color:${c};font-weight:700;">${r.promedioMetacritic}</span></td>
+        <td>${fmt(r.totalLikes)}</td><td>$${r.precioPromedio}</td><td>${fmt(r.totalVentas)}</td>
+      </tr>`;}).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── BÚSQUEDA ─────────────────────────────────────────────────────────────────
+function onSearch(){
+  clearTimeout(stimer);
+  stimer=setTimeout(()=>{
+    const sec=document.querySelector('section.active').id;
+    if(sec==='s-catalogo') loadCat();
+    if(sec==='s-ofertas')  loadOfertas();
+  },400);
+}
+
+// ─── INICIO ───────────────────────────────────────────────────────────────────
+(async()=>{
+  try{
+    cats=await api('/api/categorias');
+    const cOpts=cats.map(c=>`<option value="${c._id}">${c.icono||'🎮'} ${c.nombre}</option>`).join('');
+    $('f-cat').innerHTML='<option value="">Todas las categorías</option>'+cOpts;
+  }catch(e){}
+  loadInicio();
+})();
+</script>
+</body>
+</html>
