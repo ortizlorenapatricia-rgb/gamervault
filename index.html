@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GamerVault — Tienda de Videojuegos</title>
+<style>
+:root{
+  --bg:#0d0d14;--bg2:#12121c;--bg3:#1a1a28;--card:#15151f;--border:#252535;
+  --accent:#7c3aed;--accent2:#a855f7;--cyan:#06b6d4;--green:#10b981;
+  --red:#ef4444;--orange:#f97316;--yellow:#fbbf24;--text:#e8e8f0;--muted:#6b6b8a;--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── AUTH SCREEN ─────────────────────────────────────────────────────── */
+#auth-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:radial-gradient(ellipse at center,#1a0a2e 0%,var(--bg) 70%);
+}
+.auth-box{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:40px 44px;width:420px;
+}
+.auth-logo{
+  font-size:28px;font-weight:900;letter-spacing:3px;text-align:center;margin-bottom:6px;
+  background:linear-gradient(135deg,var(--accent2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.auth-sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-align:center;margin-bottom:28px;}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:24px;}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:all .2s;}
+.auth-tab.on{background:var(--accent);color:#fff;}
+.auth-form{display:flex;flex-direction:column;gap:14px;}
+.auth-form input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:11px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;
+}
+.auth-form input:focus{border-color:var(--accent);}
+.auth-err{background:rgba(239,68,68,.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);display:none;}
+.auth-err.show{display:block;}
+.btn-auth{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn-auth:hover{background:var(--accent2);}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────── */
+#app{display:none;flex-direction:row;min-height:100vh;}
+#app.visible{display:flex;}
+.sidebar{width:230px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
+.logo{padding:22px 20px 16px;font-size:19px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;border-bottom:1px solid var(--border);}
+.logo small{display:block;font-size:9px;letter-spacing:3px;-webkit-text-fill-color:var(--muted);margin-top:2px;font-weight:600;}
+.user-badge{margin:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;}
+.user-badge .uname{font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.user-badge .urol{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:.5px;}
+.rol-admin{background:rgba(124,58,237,.3);color:var(--accent2);}
+.rol-user{background:rgba(6,182,212,.2);color:var(--cyan);}
+.nav-sep{padding:12px 20px 5px;font-size:9px;letter-spacing:2px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+nav a{display:flex;align-items:center;gap:9px;padding:10px 20px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .15s;cursor:pointer;}
+nav a:hover,nav a.active{color:var(--text);background:rgba(124,58,237,.1);border-left-color:var(--accent);}
+nav a .ico{width:18px;text-align:center;font-size:14px;}
+.btn-logout{margin:auto 14px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:9px;font-size:12px;cursor:pointer;transition:all .2s;text-align:center;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+/* ── MAIN ────────────────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:13px 26px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:40;}
+.topbar h1{font-size:17px;font-weight:700;flex:1;}
+.search{position:relative;}
+.search input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:7px 13px 7px 32px;color:var(--text);font-size:12px;width:200px;outline:none;transition:border-color .2s;}
+.search input:focus{border-color:var(--accent);}
+.search::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;}
+.content{padding:22px 26px;flex:1;}
+section{display:none;}
+section.active{display:block;}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────── */
+.btn{padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent2);}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);}.btn-danger:hover{background:var(--red);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-green{background:var(--green);color:#fff;}.btn-green:hover{opacity:.85;}
+
+/* ── STATS ───────────────────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:13px;margin-bottom:24px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--cyan));}
+.stat .lbl{font-size:10px;color:var(--muted);letter-spacing:1px;font-weight:700;text-transform:uppercase;}
+.stat .val{font-size:26px;font-weight:900;margin-top:4px;line-height:1;}
+.stat .sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.c-purple .val{color:var(--accent2);}.c-cyan .val{color:var(--cyan);}.c-green .val{color:var(--green);}.c-orange .val{color:var(--orange);}
+
+/* ── FILTERS ─────────────────────────────────────────────────────────── */
+.filters{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:16px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;}
+.fg select,.fg input[type=text]{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 9px;font-size:12px;outline:none;}
+.fg select:focus,.fg input:focus{border-color:var(--accent);}
+
+/* ── GAME GRID ───────────────────────────────────────────────────────── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.gcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s;}
+.gcard:hover{transform:translateY(-3px);border-color:var(--accent);}
+.gcard .thumb{height:105px;background:linear-gradient(135deg,#1e1a38,#2a1256);display:flex;align-items:center;justify-content:center;font-size:36px;}
+.gcard .info{padding:10px 12px;}
+.gcard .gname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.gcard .gdev{font-size:10px;color:var(--muted);margin-bottom:6px;}
+.gcard .price-row{display:flex;align-items:center;gap:6px;}
+.gcard .price{font-size:17px;font-weight:900;color:var(--green);}
+.gcard .price.free{color:var(--cyan);}
+.gcard .price-old{font-size:10px;color:var(--muted);text-decoration:line-through;}
+.badges{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:5px;}
+.badge{display:inline-flex;align-items:center;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700;}
+.b-off{background:var(--orange);color:#fff;}.b-meta{background:var(--bg3);color:var(--cyan);border:1px solid var(--border);}
+.b-cat{background:rgba(124,58,237,.2);color:var(--accent2);}.b-rat{background:rgba(16,185,129,.2);color:var(--green);}
+
+/* ── TABLE ───────────────────────────────────────────────────────────── */
+.tbl-wrap{border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--bg3);padding:9px 13px;text-align:left;font-size:9px;letter-spacing:1px;color:var(--muted);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid rgba(37,37,53,.6);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(124,58,237,.04);}
+tbody td{padding:9px 13px;vertical-align:middle;}
+.td-name{font-weight:600;max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.actions{display:flex;gap:4px;}
+
+/* ── PAGINATION ──────────────────────────────────────────────────────── */
+.pag{display:flex;align-items:center;gap:6px;margin-top:20px;justify-content:center;flex-wrap:wrap;}
+.pag button{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s;}
+.pag button:hover,.pag button.on{background:var(--accent);border-color:var(--accent);}
+.pag button:disabled{opacity:.35;cursor:default;}
+.pag .pinfo{font-size:11px;color:var(--muted);}
+
+/* ── CHARTS ──────────────────────────────────────────────────────────── */
+.charts2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.cbox h3{font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:12px;}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:11px;}
+.bar-lbl{width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);}
+.bar-track{flex:1;background:var(--bg3);border-radius:4px;height:7px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--cyan));transition:width .5s;}
+.bar-val{width:75px;text-align:right;font-weight:600;}
+.rank-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(37,37,53,.5);}
+.rank-row:last-child{border-bottom:none;}
+.rank-pos{font-size:18px;font-weight:900;width:26px;color:var(--muted);}
+.rank-pos.g{color:var(--yellow);}.rank-pos.s{color:#9ca3af;}.rank-pos.b{color:var(--orange);}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-dev{font-size:10px;color:var(--muted);}
+.rank-score{font-size:17px;font-weight:900;color:var(--cyan);}
+
+/* ── MODAL ───────────────────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:26px 30px;width:520px;max-height:88vh;overflow-y:auto;position:relative;}
+.modal h2{font-size:19px;font-weight:800;margin-bottom:16px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fgrid .fg{display:flex;flex-direction:column;gap:4px;}
+.fgrid .fg.full{grid-column:1/-1;}
+.fgrid label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;}
+.fgrid input,.fgrid select,.fgrid textarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:12px;outline:none;font-family:inherit;}
+.fgrid input:focus,.fgrid select:focus,.fgrid textarea:focus{border-color:var(--accent);}
+.factions{display:flex;gap:9px;justify-content:flex-end;margin-top:16px;}
+.xbtn{position:absolute;top:13px;right:16px;background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1;}
+.xbtn:hover{color:var(--text);}
+
+/* ── DETALLE JUEGO ───────────────────────────────────────────────────── */
+.detalle-hero{background:linear-gradient(135deg,#1e1a38,#2a1256);border-radius:var(--r);padding:28px;display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;border:1px solid var(--border);}
+.detalle-icon{font-size:60px;width:90px;height:90px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);border-radius:10px;flex-shrink:0;}
+.detalle-info h2{font-size:22px;font-weight:900;margin-bottom:6px;}
+.detalle-info .dev{color:var(--muted);font-size:13px;margin-bottom:10px;}
+.detalle-info .precio-big{font-size:30px;font-weight:900;color:var(--green);}
+.detalle-info .precio-big.free{color:var(--cyan);}
+.resenas-section{margin-top:20px;}
+.resenas-section h3{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--accent2);}
+.resena-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.resena-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.resena-user{font-weight:700;font-size:13px;}
+.resena-fecha{font-size:10px;color:var(--muted);margin-left:auto;}
+.estrellas{color:var(--yellow);font-size:13px;}
+.resena-texto{font-size:12px;color:var(--muted);line-height:1.5;}
+.form-resena{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;}
+.form-resena h4{font-size:13px;font-weight:700;margin-bottom:12px;}
+.star-select{display:flex;gap:6px;margin-bottom:10px;}
+.star-select span{font-size:22px;cursor:pointer;opacity:.4;transition:all .2s;}
+.star-select span.on,.star-select span:hover{opacity:1;}
+.form-resena textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 11px;font-size:12px;outline:none;font-family:inherit;resize:vertical;min-height:80px;}
+.form-resena textarea:focus{border-color:var(--accent);}
+
+/* ── QUERY BOX ───────────────────────────────────────────────────────── */
+.query-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;margin-bottom:16px;font-size:11px;}
+.query-box .qlbl{font-size:9px;letter-spacing:2px;color:var(--accent2);font-weight:700;margin-bottom:5px;}
+.query-box code{color:var(--cyan);line-height:1.6;font-family:monospace;white-space:pre-wrap;}
+
+/* ── TOAST ───────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:12px;z-index:200;transform:translateY(70px);opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--green);}.toast.err{border-color:var(--red);}
+.loader{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--muted);gap:8px;}
+.spin{width:17px;height:17px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty .e{font-size:42px;margin-bottom:9px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ PANTALLA DE LOGIN / REGISTRO ════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">GAMER<br>VAULT</div>
+    <div class="auth-sub">TIENDA DE VIDEOJUEGOS</div>
+    <div class="auth-tabs">
+      <div class="auth-tab on" onclick="authTab('login')">Iniciar Sesión</div>
+      <div class="auth-tab" onclick="authTab('registro')">Crear Cuenta</div>
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-form" id="form-login">
+      <input type="email" id="l-email" placeholder="Email" autocomplete="email">
+      <input type="password" id="l-pass" placeholder="Contraseña">
+      <button class="btn-auth" onclick="login()">🎮 Entrar</button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;">
+        Admin: admin@gamervault.com / admin123
+      </p>
+    </div>
+    <div class="auth-form" id="form-registro" style="display:none;">
+      <input type="text" id="r-nombre" placeholder="Tu nombre">
+      <input type="email" id="r-email" placeholder="Email">
+      <input type="password" id="r-pass" placeholder="Contraseña (mín. 6 caracteres)">
+      <button class="btn-auth" onclick="registro()">✨ Crear Cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP PRINCIPAL ═════════════════════════════════════════════════════ -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">GAMER<br>VAULT<small>TIENDA DE JUEGOS</small></div>
+    <div class="user-badge">
+      <div>
+        <div class="uname" id="sb-nombre">—</div>
+        <span class="urol" id="sb-rol">usuario</span>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-sep">Principal</div>
+      <a class="active" onclick="go('catalogo')"><span class="ico">🎮</span> Catálogo</a>
+      <a onclick="go('dashboard')"><span class="ico">📊</span> Dashboard</a>
+      <div id="nav-admin" style="display:none;">
+        <div class="nav-sep">Administración</div>
+        <a onclick="go('crud')"><span class="ico">📋</span> Gestión Juegos</a>
+        <a onclick="go('usuarios')"><span class="ico">👥</span> Usuarios</a>
+      </div>
+      <div class="nav-sep">Consultas Aggregate</div>
+      <a onclick="go('q-cat')"><span class="ico">📈</span> Por Categoría</a>
+      <a onclick="go('q-plat')"><span class="ico">🖥️</span> Por Plataforma</a>
+      <a onclick="go('q-rank')"><span class="ico">🏆</span> Rankings</a>
+      <a onclick="go('q-anio')"><span class="ico">📅</span> Por Año</a>
+    </nav>
+    <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesión</button>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="sec-title">Catálogo de Juegos</h1>
+      <div class="search"><input type="text" id="gsearch" placeholder="Buscar juego..." oninput="onSearch()"></div>
+      <div id="btn-nuevo-wrap"></div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section id="s-dashboard">
+        <div class="stats" id="dash-stats"><div class="loader"><div class="spin"></div> Cargando...</div></div>
+        <div class="charts2">
+          <div class="cbox"><h3>📈 Ventas por Categoría (Top 5)</h3><div id="dc-cat"></div></div>
+          <div class="cbox"><h3>🏆 Top 8 por Likes</h3><div id="dc-rank"></div></div>
+        </div>
+      </section>
+
+      <!-- CATÁLOGO -->
+      <section id="s-catalogo" class="active">
+        <div class="filters">
+          <div class="fg"><label>CATEGORÍA</label><select id="f-cat" onchange="loadCat()"><option value="">Todas</option></select></div>
+          <div class="fg"><label>ORDENAR</label>
+            <select id="f-orden" onchange="loadCat()">
+              <option value="">Más recientes</option><option value="precio_asc">Precio ↑</option>
+              <option value="precio_desc">Precio ↓</option><option value="metacritic">Metacritic</option>
+              <option value="likes">Likes</option><option value="nombre">Nombre A-Z</option>
+            </select>
+          </div>
+          <div class="fg" style="flex-direction:row;align-items:center;gap:6px;padding-top:14px;">
+            <input type="checkbox" id="f-oferta" onchange="loadCat()">
+            <label style="font-size:12px;color:var(--text);">Solo ofertas</label>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="resetF()">Limpiar</button>
+        </div>
+        <div id="cat-grid" class="game-grid"><div class="loader"><div class="spin"></div></div></div>
+        <div class="pag" id="cat-pag"></div>
+      </section>
+
+      <!-- DETALLE JUEGO -->
+      <section id="s-detalle">
+        <button class="btn btn-ghost btn-sm" onclick="go('catalogo')" style="margin-bottom:16px;">← Volver al Catálogo</button>
+        <div id="detalle-content"></div>
+      </section>
+
+      <!-- CRUD (solo admin) -->
+      <section id="s-crud">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;">
+          <span id="crud-count" style="color:var(--muted);font-size:12px;"></span>
+          <button class="btn btn-primary btn-sm" onclick="abrirModal()">+ Agregar Juego</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Desarrollador</th><th>Género</th><th>Precio</th><th>Descuento</th><th>Metacritic</th><th>Likes</th><th>Reseñas</th><th>Acciones</th></tr></thead>
+            <tbody id="crud-body"><tr><td colspan="9"><div class="loader"><div class="spin"></div></div></td></tr></tbody>
+          </table>
+        </div>
+        <div class="pag" id="crud-pag"></div>
+      </section>
+
+      <!-- USUARIOS (solo admin) -->
+      <section id="s-usuarios">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Registro</th><th>Acciones</th></tr></thead>
+            <tbody id="usr-body"><tr><td colspan="5"><div class="loader"><div class="spin"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 1 -->
+      <section id="s-q-cat">
+        <div class="query-box">
+          <div class="qlbl">AGGREGATE 1 — $match + $lookup(JOIN) + $unwind + $group + $project + $sort</div>
+          <code>db.juegos.aggregate([
+  { $match: { precio: { $exists: true } } },
+  { $lookup: { from:"categorias", localField:"categoriaId",
+               foreignField:"_id", as:"cat" } },
+  { $unwind: { path:"$cat", preserveNullAndEmptyArrays:true } },
+  { $group: { _id:"$cat.nombre", totalVentas:{$sum:"$ventas"},
+              promedioMetacritic:{$avg:"$metacritic"} } },
+  { $sort: { totalVentas:-1 } }, { $limit: 10 }
+])</code>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px;color:var(--muted);">Top: </label>
+          <select id="q-cat-top" onchange="loadQCat()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;">
+            <option value="5">5</option><option value="8">8</option><option value="15" selected>15</option>
+          </select>
+        </div>
+        <div class="cbox" style="margin-bottom:16px;"><h3>💰 Total Ventas por Categoría</h3><div id="qc-ventas"></div></div>
+        <div class="charts2">
+          <div class="cbox"><h3>⭐ Metacritic Promedio</h3><div id="qc-meta"></div></div>
+          <div class="cbox"><h3>💵 Precio Promedio</h3><div id="qc-precio"></div></div>
+        </div>
+        <div class="tbl-wrap" style="margin-top:16px;">
+          <table><thead><tr><th>Categoría</th><th>Juegos</th><th>Ventas</th><th>Metacritic Avg</th><th>Precio Avg</th><th>En Oferta</th></tr></thead>
+          <tbody id="qc-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 2 -->
+      <section id="s-q-plat">
+        <div class="query-box">
+          <div class="qlbl">AGGREGATE 2 — $unwind(array) + $lookup + $group + $project + $sort</div>
+          <code>db.juegos.aggregate([
+  { $unwind: "$plataformas" },
+  { $lookup: { from:"plataformas", localField:"plataformas",
+               foreignField:"_id", as:"plat" } },
+  { $unwind: "$plat" },
+  { $group: { _id:"$plat.nombre", totalJuegos:{$sum:1},
+              precioPromedio:{$avg:"$precio"} } },
+  { $sort: { totalJuegos:-1 } }
+])</code>
+        </div>
+        <div class="cbox" style="margin-bottom:16px;"><h3>🎯 Juegos por Plataforma</h3><div id="qp-chart"></div></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Plataforma</th><th>Fabricante</th><th>Tipo</th><th>Juegos</th><th>Precio Avg</th><th>Precio Min</th><th>Precio Max</th><th>Desc. Avg</th></tr></thead>
+          <tbody id="qp-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 3 -->
+      <section id="s-q-rank">
+        <div class="query-box">
+          <div class="qlbl">AGGREGATE 3 — $match + $lookup + $project + $sort + $limit (Top N)</div>
+          <code>db.juegos.aggregate([
+  { $match: { likes: { $gt: 0 } } },
+  { $lookup: { from:"categorias", localField:"categoriaId",
+               foreignField:"_id", as:"cat" } },
+  { $project: { nombre:1, likes:1, metacritic:1,
+                categoria:{$first:"$cat.nombre"} } },
+  { $sort: { likes:-1 } }, { $limit: 10 }
+])</code>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <div class="fg">
+            <label>CRITERIO</label>
+            <select id="r-crit" onchange="loadRank()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 9px;font-size:12px;">
+              <option value="likes">👍 Likes</option><option value="ventas">💰 Ventas</option><option value="metacritic">⭐ Metacritic</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>TOP N</label>
+            <select id="r-top" onchange="loadRank()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 9px;font-size:12px;">
+              <option value="10">Top 10</option><option value="20">Top 20</option><option value="50">Top 50</option>
+            </select>
+          </div>
+        </div>
+        <div class="charts2">
+          <div class="cbox"><h3>🏆 Podio</h3><div id="r-podio"></div></div>
+          <div class="cbox"><h3>📊 Barras</h3><div id="r-bars"></div></div>
+        </div>
+      </section>
+
+      <!-- AGGREGATE 4 -->
+      <section id="s-q-anio">
+        <div class="query-box">
+          <div class="qlbl">AGGREGATE 4 — $match + $group($year) + $project + $sort</div>
+          <code>db.juegos.aggregate([
+  { $match: { fechaLanzamiento:{$exists:true,$type:"date"} } },
+  { $group: { _id:{$year:"$fechaLanzamiento"}, totalJuegos:{$sum:1},
+              promedioMetacritic:{$avg:"$metacritic"},
+              totalVentas:{$sum:"$ventas"} } },
+  { $project: { anio:"$_id", totalJuegos:1,
+                promedioMetacritic:{$round:["$promedioMetacritic",1]} } },
+  { $sort: { anio:1 } }
+])</code>
+        </div>
+        <div class="cbox" style="margin-bottom:16px;"><h3>📅 Juegos por Año</h3><div id="qa-chart"></div></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Año</th><th>Juegos</th><th>Metacritic Avg</th><th>Total Likes</th><th>Precio Avg</th><th>Ventas</th></tr></thead>
+          <tbody id="qa-body"></tbody></table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL JUEGO (admin) -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="xbtn" onclick="cerrarModal()">✕</button>
+    <h2 id="m-title">Nuevo Juego</h2>
+    <input type="hidden" id="m-id">
+    <div class="fgrid">
+      <div class="fg full"><label>NOMBRE *</label><input id="m-nombre" placeholder="Nombre del juego"></div>
+      <div class="fg"><label>DESARROLLADOR</label><input id="m-dev" placeholder="Ej: Capcom"></div>
+      <div class="fg"><label>GÉNERO</label><input id="m-genero" placeholder="Ej: Acción/RPG"></div>
+      <div class="fg"><label>CATEGORÍA</label><select id="m-cat"></select></div>
+      <div class="fg"><label>PRECIO (USD) *</label><input id="m-precio" type="number" step="0.01" min="0" placeholder="59.99"></div>
+      <div class="fg"><label>DESCUENTO (%)</label><input id="m-desc" type="number" min="0" max="100" placeholder="0"></div>
+      <div class="fg"><label>METACRITIC</label><input id="m-meta" type="number" min="0" max="100" placeholder="0-100"></div>
+      <div class="fg"><label>STOCK</label><input id="m-stock" type="number" min="0" placeholder="100"></div>
+      <div class="fg"><label>CLASIFICACIÓN</label>
+        <select id="m-clasif"><option>E</option><option>E10+</option><option>T</option><option>M</option><option>AO</option></select>
+      </div>
+      <div class="fg" style="flex-direction:row;align-items:center;gap:6px;padding-top:14px;">
+        <input type="checkbox" id="m-multi"><label style="font-size:12px;color:var(--text);">Multijugador</label>
+      </div>
+      <div class="fg full"><label>URL TIENDA</label><input id="m-url" placeholder="https://..."></div>
+    </div>
+    <div class="factions">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── ESTADO ───────────────────────────────────────────────────────────────────
+let token='', userRol='', userName='', userId='';
+let cats=[], catPag=1, crudPag=1, stimer, starSel=0;
+const $ = id => document.getElementById(id);
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function authTab(t){
+  $('form-login').style.display   = t==='login'?'flex':'none';
+  $('form-registro').style.display= t==='registro'?'flex':'none';
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>{
+    el.classList.toggle('on', (i===0&&t==='login')||(i===1&&t==='registro'));
+  });
+  $('auth-err').classList.remove('show');
+}
+function authErr(msg){ const e=$('auth-err'); e.textContent=msg; e.classList.add('show'); }
+
+async function login(){
+  const email=$('l-email').value.trim(), pass=$('l-pass').value;
+  if(!email||!pass){ authErr('Completa todos los campos'); return; }
+  try{
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){ authErr(d.error); return; }
+    iniciarSesion(d);
+  }catch(e){ authErr('Error de conexión con el servidor'); }
+}
+
+async function registro(){
+  const nombre=$('r-nombre').value.trim(), email=$('r-email').value.trim(), pass=$('r-pass').value;
+  if(!nombre||!email||!pass){ authErr('Completa todos los campos'); return; }
+  try{
+    const r=await fetch('/api/auth/registro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){ authErr(d.error); return; }
+    iniciarSesion(d);
+  }catch(e){ authErr('Error de conexión con el servidor'); }
+}
+
+function iniciarSesion(d){
+  token=d.token; userRol=d.rol; userName=d.nombre; userId=d.id||'';
+  $('auth-screen').style.display='none';
+  $('app').classList.add('visible');
+  $('sb-nombre').textContent=userName;
+  const rolEl=$('sb-rol');
+  rolEl.textContent=userRol==='admin'?'👑 Admin':'👤 Usuario';
+  rolEl.className='urol '+(userRol==='admin'?'rol-admin':'rol-user');
+  if(userRol==='admin'){
+    $('nav-admin').style.display='block';
+    $('btn-nuevo-wrap').innerHTML='<button class="btn btn-primary" onclick="abrirModal()">+ Nuevo Juego</button>';
+  }
+  init();
+}
+
+function logout(){
+  token='';userRol='';userName='';
+  $('auth-screen').style.display='flex';
+  $('app').classList.remove('visible');
+  $('l-email').value='';$('l-pass').value='';
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+const TITLES={
+  dashboard:'Dashboard',catalogo:'Catálogo de Juegos',crud:'Gestión de Juegos (Admin)',
+  usuarios:'Gestión de Usuarios (Admin)',detalle:'Detalle del Juego',
+  'q-cat':'Aggregate 1 — Por Categoría','q-plat':'Aggregate 2 — Por Plataforma',
+  'q-rank':'Aggregate 3 — Rankings','q-anio':'Aggregate 4 — Por Año',
+};
+function go(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  $('s-'+id).classList.add('active');
+  $('sec-title').textContent=TITLES[id]||id;
+  const navLinks=document.querySelectorAll('nav a');
+  const map={catalogo:0,dashboard:1,crud:3,usuarios:4,'q-cat':6,'q-plat':7,'q-rank':8,'q-anio':9};
+  if(map[id]!==undefined && navLinks[map[id]]) navLinks[map[id]].classList.add('active');
+  if(id==='dashboard') loadDash();
+  if(id==='catalogo')  loadCat();
+  if(id==='crud')      loadCrud();
+  if(id==='usuarios')  loadUsuarios();
+  if(id==='q-cat')     loadQCat();
+  if(id==='q-plat')    loadQPlat();
+  if(id==='q-rank')    loadRank();
+  if(id==='q-anio')    loadQAnio();
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+const fmt=n=>n!=null?Number(n).toLocaleString('es-CO'):'—';
+const price=p=>p===0?'GRATIS':'$'+Number(p).toFixed(2);
+const stars=n=>'★'.repeat(Math.round(n||0))+'☆'.repeat(5-Math.round(n||0));
+
+async function api(url,opt={}){
+  if(!opt.headers) opt.headers={};
+  if(token) opt.headers['Authorization']='Bearer '+token;
+  if(opt.body && !opt.headers['Content-Type']) opt.headers['Content-Type']='application/json';
+  const r=await fetch(url,opt);
+  if(!r.ok){ const e=await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error||r.statusText); }
+  return r.json();
+}
+
+function toast(msg,type='ok'){
+  const t=$('toast');
+  t.textContent=(type==='ok'?'✅ ':'❌ ')+msg;
+  t.className=`toast show ${type}`;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function pag(page,total,fn){
+  if(total<=1) return '';
+  const max=Math.min(7,total);
+  const start=Math.max(1,Math.min(total-max+1,page-3));
+  let h=`<button onclick="${fn}(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  for(let i=0;i<max;i++){const p=start+i;h+=`<button class="${p===page?'on':''}" onclick="${fn}(${p})">${p}</button>`;}
+  h+=`<button onclick="${fn}(${page+1})" ${page>=total?'disabled':''}>›</button>`;
+  h+=`<span class="pinfo">Pág ${page}/${total}</span>`;
+  return h;
+}
+
+function bars(el,data,vk,lk,color='linear-gradient(90deg,var(--accent),var(--cyan))'){
+  if(!data||!data.length){el.innerHTML='<div class="empty"><div class="e">📭</div>Sin datos</div>';return;}
+  const max=Math.max(...data.map(d=>d[vk]||0))||1;
+  el.innerHTML=data.map(d=>`
+    <div class="bar-row">
+      <div class="bar-lbl" title="${d[lk]}">${d[lk]||'—'}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d[vk]/max*100).toFixed(1)}%;background:${color}"></div></div>
+      <div class="bar-val">${fmt(d[vk])}</div>
+    </div>`).join('');
+}
+
+function getIcon(g=''){
+  if(g.includes('Terror')||g.includes('Horror')) return '👻';
+  if(g.includes('Carrera')) return '🏎️';
+  if(g.includes('Deport')) return '⚽';
+  if(g.includes('Pelea')) return '🥊';
+  if(g.includes('Shoot')) return '🔫';
+  if(g.includes('RPG')||g.includes('Rol')) return '🧙';
+  if(g.includes('Plataform')) return '🍄';
+  if(g.includes('Estrat')) return '♟️';
+  if(g.includes('Indie')) return '🎨';
+  if(g.includes('Battle')||g.includes('Royale')) return '🏆';
+  if(g.includes('Simulac')) return '🛫';
+  if(g.includes('Aventura')) return '🗺️';
+  return '🎮';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init(){
+  cats=await api('/api/categorias').catch(()=>[]);
+  const cOpts=cats.map(c=>`<option value="${c._id}">${c.icono||'🎮'} ${c.nombre}</option>`).join('');
+  $('f-cat').innerHTML='<option value="">Todas las categorías</option>'+cOpts;
+  $('m-cat').innerHTML='<option value="">Sin categoría</option>'+cOpts;
+  $('sec-title').textContent='Catálogo de Juegos';
+  loadCat();
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+async function loadDash(){
+  try{
+    const [d,cat,rank]=await Promise.all([
+      api('/api/stats/dashboard'),
+      api('/api/stats/por-categoria?top=5'),
+      api('/api/stats/ranking?criterio=likes&top=8'),
+    ]);
+    const usrStat = userRol==='admin'
+      ? `<div class="stat c-cyan"><div class="lbl">Usuarios</div><div class="val">${fmt(d.totalUsuarios)}</div><div class="sub">Registrados</div></div>`
+      : '';
+    $('dash-stats').innerHTML=`
+      <div class="stat c-purple"><div class="lbl">Total Juegos</div><div class="val">${fmt(d.totalJuegos)}</div><div class="sub">${d.totalCats} categorías · ${d.totalPlats} plataformas</div></div>
+      <div class="stat c-cyan"><div class="lbl">Precio Promedio</div><div class="val">$${d.precioPromedio||0}</div><div class="sub">Min $${(d.precioMin||0).toFixed(2)} / Max $${(d.precioMax||0).toFixed(2)}</div></div>
+      <div class="stat c-green"><div class="lbl">Total Likes</div><div class="val">${fmt(d.totalLikes)}</div></div>
+      <div class="stat c-orange"><div class="lbl">En Oferta</div><div class="val">${fmt(d.enOferta)}</div><div class="sub">Con descuento</div></div>
+      <div class="stat"><div class="lbl">Total Ventas</div><div class="val">${fmt(d.totalVentas)}</div></div>
+      ${usrStat}`;
+    bars($('dc-cat'),cat,'totalVentas','categoria');
+    $('dc-rank').innerHTML=rank.map(j=>`
+      <div class="rank-row">
+        <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
+        <div class="rank-info"><div class="rank-name">${j.nombre}</div><div class="rank-dev">${j.desarrollador}</div></div>
+        <div class="rank-score">${fmt(j.score)} ♥</div>
+      </div>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── CATÁLOGO ─────────────────────────────────────────────────────────────────
+async function loadCat(p=1){
+  catPag=p;
+  const cat=$('f-cat').value,orden=$('f-orden').value,oferta=$('f-oferta').checked,buscar=$('gsearch').value;
+  let url=`/api/juegos?page=${p}&limit=24`;
+  if(cat) url+=`&categoria=${cat}`;
+  if(orden) url+=`&orden=${orden}`;
+  if(oferta) url+=`&oferta=true`;
+  if(buscar) url+=`&buscar=${encodeURIComponent(buscar)}`;
+  $('cat-grid').innerHTML='<div class="loader"><div class="spin"></div> Cargando...</div>';
+  try{
+    const d=await api(url);
+    $('cat-grid').innerHTML=d.juegos.length
+      ? d.juegos.map(j=>`
+          <div class="gcard" onclick="verDetalle('${j._id}')">
+            <div class="thumb">${getIcon(j.genero||'')}</div>
+            <div class="info">
+              <div class="badges">
+                ${j.enOferta?`<span class="badge b-off">-${j.descuento}%</span>`:''}
+                ${j.metacritic>0?`<span class="badge b-meta">⭐${j.metacritic}</span>`:''}
+                ${j.numReseñas>0?`<span class="badge b-rat">${stars(j.calificacion)} (${j.numReseñas})</span>`:''}
+              </div>
+              <div class="gname" title="${j.nombre}">${j.nombre}</div>
+              <div class="gdev">${j.desarrollador||'—'}</div>
+              <div class="price-row">
+                <div class="price ${j.precio===0?'free':''}">${price(j.precio)}</div>
+                ${j.enOferta?`<div class="price-old">$${(j.precioOriginal||0).toFixed(2)}</div>`:''}
+              </div>
+            </div>
+          </div>`).join('')
+      : '<div class="empty"><div class="e">🎮</div><p>No se encontraron juegos</p></div>';
+    $('cat-pag').innerHTML=pag(p,d.totalPages,'loadCat');
+  }catch(e){ toast(e.message,'err'); }
+}
+function resetF(){ $('f-cat').value='';$('f-orden').value='';$('f-oferta').checked=false;loadCat(); }
+
+// ─── DETALLE + RESEÑAS ────────────────────────────────────────────────────────
+async function verDetalle(id){
+  go('detalle');
+  $('detalle-content').innerHTML='<div class="loader"><div class="spin"></div> Cargando...</div>';
+  try{
+    const [j,resenas]=await Promise.all([
+      api('/api/juegos/'+id),
+      api('/api/juegos/'+id+'/resenas'),
+    ]);
+
+    const editBtn = userRol==='admin'
+      ? `<button class="btn btn-ghost btn-sm" onclick="editarJuego('${j._id}')">✏️ Editar</button>
+         <button class="btn btn-danger btn-sm" onclick="borrar('${j._id}','${j.nombre.replace(/'/g,"\\'")}')">🗑️ Eliminar</button>`
+      : '';
+
+    const yaReseno = resenas.some(r => r.usuarioId?.toString()===userId?.toString());
+    const formResena = (token && !yaReseno)
+      ? `<div class="form-resena">
+           <h4>✍️ Escribe tu reseña</h4>
+           <div class="star-select" id="star-row">
+             <span onclick="selStar(1)">★</span><span onclick="selStar(2)">★</span>
+             <span onclick="selStar(3)">★</span><span onclick="selStar(4)">★</span>
+             <span onclick="selStar(5)">★</span>
+           </div>
+           <textarea id="res-texto" placeholder="Cuéntanos tu experiencia con este juego..."></textarea>
+           <div style="margin-top:10px;">
+             <button class="btn btn-green btn-sm" onclick="enviarResena('${j._id}')">Publicar Reseña</button>
+           </div>
+         </div>`
+      : yaReseno
+        ? '<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">✅ Ya publicaste una reseña para este juego.</p>'
+        : '<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Inicia sesión para escribir una reseña.</p>';
+
+    $('detalle-content').innerHTML=`
+      <div class="detalle-hero">
+        <div class="detalle-icon">${getIcon(j.genero||'')}</div>
+        <div class="detalle-info" style="flex:1">
+          <h2>${j.nombre}</h2>
+          <div class="dev">${j.desarrollador||'—'} · ${j.genero||'—'}</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            ${j.enOferta?`<span class="badge b-off">-${j.descuento}% OFERTA</span>`:''}
+            ${j.metacritic>0?`<span class="badge b-meta">Metacritic ${j.metacritic}</span>`:''}
+            ${j.numReseñas>0?`<span class="badge b-rat">${stars(j.calificacion)} ${j.calificacion} (${j.numReseñas} reseñas)</span>`:''}
+            <span class="badge" style="background:var(--bg3);border:1px solid var(--border);">${j.clasificacion||'E'}</span>
+          </div>
+          <div class="precio-big ${j.precio===0?'free':''}">${price(j.precio)}</div>
+          ${j.enOferta?`<div style="color:var(--muted);font-size:12px;margin-top:2px;">Precio original: $${(j.precioOriginal||0).toFixed(2)}</div>`:''}
+          <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+            ${editBtn}
+            ${j.url?`<a href="${j.url}" target="_blank" class="btn btn-primary btn-sm">🛒 Comprar</a>`:''}
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="stat"><div class="lbl">Likes</div><div class="val" style="font-size:20px;">${fmt(j.likes)}</div></div>
+        <div class="stat"><div class="lbl">Stock</div><div class="val" style="font-size:20px;">${fmt(j.stock)}</div></div>
+        <div class="stat"><div class="lbl">Calificación</div><div class="val" style="font-size:20px;color:var(--yellow);">${j.calificacion||'—'} ★</div></div>
+      </div>
+      <div class="resenas-section">
+        <h3>💬 Reseñas (${resenas.length})</h3>
+        ${formResena}
+        ${resenas.length ? resenas.map(r=>`
+          <div class="resena-card">
+            <div class="resena-header">
+              <div class="resena-user">👤 ${r.usuarioNombre||'Usuario'}</div>
+              <div class="estrellas">${'★'.repeat(r.puntuacion)}${'☆'.repeat(5-r.puntuacion)}</div>
+              <div class="resena-fecha">${new Date(r.fecha).toLocaleDateString('es-CO')}</div>
+              ${userRol==='admin'?`<button class="btn btn-danger btn-sm" onclick="borrarResena('${r._id}','${j._id}')">🗑️</button>`:''}
+            </div>
+            <div class="resena-texto">${r.comentario}</div>
+          </div>`).join('')
+          : '<div class="empty"><div class="e">💬</div><p>Aún no hay reseñas. ¡Sé el primero!</p></div>'}
+      </div>`;
+
+    starSel=0;
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function selStar(n){
+  starSel=n;
+  document.querySelectorAll('#star-row span').forEach((el,i)=>{
+    el.classList.toggle('on',i<n);
+  });
+}
+
+async function enviarResena(juegoId){
+  if(!starSel){ toast('Selecciona una puntuación (1-5 estrellas)','err'); return; }
+  const comentario=($('res-texto')||{}).value?.trim();
+  if(!comentario){ toast('Escribe un comentario','err'); return; }
+  try{
+    await api('/api/juegos/'+juegoId+'/resenas',{
+      method:'POST',
+      body:JSON.stringify({ puntuacion:starSel, comentario }),
+    });
+    toast('¡Reseña publicada!');
+    verDetalle(juegoId);
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function borrarResena(resenaId, juegoId){
+  if(!confirm('¿Eliminar esta reseña?')) return;
+  try{
+    await api('/api/resenas/'+resenaId,{ method:'DELETE' });
+    toast('Reseña eliminada');
+    verDetalle(juegoId);
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── CRUD TABLE (admin) ───────────────────────────────────────────────────────
+async function loadCrud(p=1){
+  crudPag=p;
+  const buscar=$('gsearch').value;
+  let url=`/api/juegos?page=${p}&limit=25`;
+  if(buscar) url+=`&buscar=${encodeURIComponent(buscar)}`;
+  $('crud-body').innerHTML='<tr><td colspan="9"><div class="loader"><div class="spin"></div></div></td></tr>';
+  try{
+    const d=await api(url);
+    $('crud-count').textContent=`Total: ${fmt(d.total)} juegos`;
+    $('crud-body').innerHTML=d.juegos.map(j=>`
+      <tr>
+        <td><div class="td-name" title="${j.nombre}">${j.nombre}</div></td>
+        <td>${j.desarrollador||'—'}</td>
+        <td><span class="badge b-cat">${(j.genero||'').split('/')[0]||'—'}</span></td>
+        <td style="color:var(--green);font-weight:700;">${price(j.precio)}</td>
+        <td>${j.descuento>0?`<span class="badge b-off">-${j.descuento}%</span>`:'—'}</td>
+        <td>${j.metacritic||'—'}</td>
+        <td>${fmt(j.likes)}</td>
+        <td>${j.numReseñas||0} (${j.calificacion||0}★)</td>
+        <td class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="editarJuego('${j._id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="borrar('${j._id}','${j.nombre.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>`).join('');
+    $('crud-pag').innerHTML=pag(p,d.totalPages,'loadCrud');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── USUARIOS (admin) ─────────────────────────────────────────────────────────
+async function loadUsuarios(){
+  $('usr-body').innerHTML='<tr><td colspan="5"><div class="loader"><div class="spin"></div></div></td></tr>';
+  try{
+    const users=await api('/api/usuarios');
+    $('usr-body').innerHTML=users.map(u=>`
+      <tr>
+        <td><strong>${u.nombre}</strong></td>
+        <td>${u.email}</td>
+        <td><span class="badge ${u.rol==='admin'?'rol-admin':'rol-user'}">${u.rol==='admin'?'👑 Admin':'👤 Usuario'}</span></td>
+        <td>${new Date(u.fechaRegistro).toLocaleDateString('es-CO')}</td>
+        <td class="actions">
+          ${u.rol!=='admin'?`<button class="btn btn-ghost btn-sm" onclick="cambiarRol('${u._id}','admin')">→ Admin</button>`:''}
+          ${u.rol==='admin'?`<button class="btn btn-ghost btn-sm" onclick="cambiarRol('${u._id}','usuario')">→ Usuario</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="borrarUsuario('${u._id}')">🗑️</button>
+        </td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function cambiarRol(id,rol){
+  try{
+    await api('/api/usuarios/'+id+'/rol',{method:'PUT',body:JSON.stringify({rol})});
+    toast('Rol actualizado'); loadUsuarios();
+  }catch(e){ toast(e.message,'err'); }
+}
+async function borrarUsuario(id){
+  if(!confirm('¿Eliminar este usuario?')) return;
+  try{ await api('/api/usuarios/'+id,{method:'DELETE'}); toast('Usuario eliminado'); loadUsuarios(); }
+  catch(e){ toast(e.message,'err'); }
+}
+
+// ─── MODAL CRUD ───────────────────────────────────────────────────────────────
+function abrirModal(){
+  $('m-title').textContent='Nuevo Juego';
+  $('m-id').value='';
+  ['nombre','dev','genero','precio','desc','meta','stock','url'].forEach(k=>$('m-'+k).value='');
+  $('m-cat').value='';$('m-clasif').value='E';$('m-multi').checked=false;
+  $('overlay').classList.add('open');
+}
+function cerrarModal(){ $('overlay').classList.remove('open'); }
+
+async function editarJuego(id){
+  try{
+    const j=await api('/api/juegos/'+id);
+    $('m-title').textContent='Editar Juego';
+    $('m-id').value=j._id;
+    $('m-nombre').value=j.nombre||'';
+    $('m-dev').value=j.desarrollador||'';
+    $('m-genero').value=j.genero||'';
+    $('m-precio').value=j.precio||0;
+    $('m-desc').value=j.descuento||0;
+    $('m-meta').value=j.metacritic||0;
+    $('m-stock').value=j.stock||0;
+    $('m-url').value=j.url||'';
+    $('m-clasif').value=j.clasificacion||'E';
+    $('m-multi').checked=!!j.multijugador;
+    if(j.categoriaId) $('m-cat').value=j.categoriaId;
+    $('overlay').classList.add('open');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function guardar(){
+  const id=$('m-id').value;
+  const body={
+    nombre:$('m-nombre').value.trim(),
+    desarrollador:$('m-dev').value.trim(),
+    genero:$('m-genero').value.trim(),
+    precio:$('m-precio').value,
+    descuento:$('m-desc').value,
+    metacritic:$('m-meta').value,
+    stock:$('m-stock').value,
+    clasificacion:$('m-clasif').value,
+    multijugador:$('m-multi').checked,
+    url:$('m-url').value,
+    categoriaId:$('m-cat').value||undefined,
+  };
+  if(!body.nombre||!body.precio){ toast('Nombre y precio son obligatorios','err'); return; }
+  try{
+    if(id){
+      await api('/api/juegos/'+id,{method:'PUT',body:JSON.stringify(body)});
+      toast('Juego actualizado ✔');
+    }else{
+      await api('/api/juegos',{method:'POST',body:JSON.stringify(body)});
+      toast('Juego creado ✔');
+    }
+    cerrarModal();
+    const sec=document.querySelector('section.active').id.replace('s-','');
+    if(sec==='crud') loadCrud(crudPag);
+    if(sec==='catalogo') loadCat(catPag);
+    if(sec==='detalle') verDetalle(id);
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function borrar(id,nombre){
+  if(!confirm(`¿Eliminar "${nombre}"?`)) return;
+  try{
+    await api('/api/juegos/'+id,{method:'DELETE'});
+    toast('Eliminado');
+    const sec=document.querySelector('section.active').id.replace('s-','');
+    if(sec==='crud') loadCrud(crudPag);
+    else go('catalogo');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── AGGREGATES ───────────────────────────────────────────────────────────────
+async function loadQCat(){
+  const top=$('q-cat-top').value;
+  try{
+    const d=await api(`/api/stats/por-categoria?top=${top}`);
+    bars($('qc-ventas'),d,'totalVentas','categoria');
+    bars($('qc-meta'),d,'promedioMetacritic','categoria','linear-gradient(90deg,var(--yellow),var(--orange))');
+    bars($('qc-precio'),d,'precioPromedio','categoria','linear-gradient(90deg,var(--green),var(--cyan))');
+    $('qc-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.icono} ${r.categoria}</strong></td>
+        <td>${fmt(r.totalJuegos)}</td><td>${fmt(r.totalVentas)}</td>
+        <td><span style="color:var(--cyan)">${r.promedioMetacritic}</span></td>
+        <td>$${r.precioPromedio}</td><td>${fmt(r.juegoEnOferta)}</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function loadQPlat(){
+  try{
+    const d=await api('/api/stats/por-plataforma');
+    bars($('qp-chart'),d,'totalJuegos','plataforma');
+    $('qp-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.plataforma}</strong></td><td>${r.fabricante||'—'}</td><td>${r.tipo||'—'}</td>
+        <td>${fmt(r.totalJuegos)}</td><td>$${r.precioPromedio}</td>
+        <td style="color:var(--green);">$${r.precioMin}</td>
+        <td style="color:var(--red);">$${r.precioMax}</td>
+        <td>${r.descuentoPromedio}%</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function loadRank(){
+  const crit=$('r-crit').value,top=$('r-top').value;
+  try{
+    const d=await api(`/api/stats/ranking?criterio=${crit}&top=${top}`);
+    $('r-podio').innerHTML=d.slice(0,10).map(j=>`
+      <div class="rank-row">
+        <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
+        <div class="rank-info"><div class="rank-name">${j.nombre}</div><div class="rank-dev">${j.desarrollador} · ${j.categoria||'—'}</div></div>
+        <div class="rank-score">${fmt(j.score)}</div>
+      </div>`).join('');
+    bars($('r-bars'),d.slice(0,10),'score','nombre',
+      crit==='metacritic'?'linear-gradient(90deg,var(--yellow),var(--orange))':'linear-gradient(90deg,var(--accent),var(--cyan))');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function loadQAnio(){
+  try{
+    const d=await api('/api/stats/por-anio');
+    bars($('qa-chart'),d,'totalJuegos','anio','linear-gradient(90deg,var(--cyan),var(--green))');
+    $('qa-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.anio}</strong></td><td>${fmt(r.totalJuegos)}</td>
+        <td><span style="color:var(--cyan)">${r.promedioMetacritic}</span></td>
+        <td>${fmt(r.totalLikes)}</td><td>$${r.precioPromedio}</td><td>${fmt(r.totalVentas)}</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── BÚSQUEDA ─────────────────────────────────────────────────────────────────
+function onSearch(){
+  clearTimeout(stimer);
+  stimer=setTimeout(()=>{
+    const sec=document.querySelector('section.active').id;
+    if(sec==='s-catalogo') loadCat();
+    if(sec==='s-crud') loadCrud();
+  },400);
+}
+</script>
+</body>
+</html>
