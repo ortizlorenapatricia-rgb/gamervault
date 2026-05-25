@@ -739,3 +739,5 @@ conectar().then(() => {
   console.error("❌ Error MongoDB:", err.message);
   process.exit(1);
 });
+
+module.exports = app;
