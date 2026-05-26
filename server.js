@@ -727,17 +727,36 @@ app.get("/api/stats/transacciones/por-metodo", async (req, res) => {
 });
 
 // ─── INICIO ───────────────────────────────────────────────────────────────────
-conectar().then(() => {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log("─────────────────────────────────────────");
-    console.log(`🎮 GamerVault corriendo en http://localhost:${PORT}`);
-    console.log("👤 Admin: admin@gamervault.com / admin123");
-    console.log("─────────────────────────────────────────");
-  });
-}).catch(err => {
-  console.error("❌ Error MongoDB:", err.message);
-  process.exit(1);
+let conectado = false;
+
+async function conectarSiNecesario() {
+  if (!conectado) {
+    await conectar();
+    conectado = true;
+  }
+}
+
+// Middleware para conectar antes de cada request en Vercel
+app.use(async (req, res, next) => {
+  try {
+    await conectarSiNecesario();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Error conectando a la base de datos: " + err.message });
+  }
 });
+
+// Para desarrollo local
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  conectar().then(() => {
+    app.listen(PORT, () => {
+      console.log("GamerVault corriendo en http://localhost:" + PORT);
+    });
+  }).catch(err => {
+    console.error("Error MongoDB:", err.message);
+    process.exit(1);
+  });
+}
 
 module.exports = app;
