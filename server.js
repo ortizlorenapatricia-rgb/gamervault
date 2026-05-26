@@ -761,4 +761,9 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+// Servir index.html para todas las rutas no-API
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 module.exports = app;
