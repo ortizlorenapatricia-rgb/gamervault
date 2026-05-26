@@ -7,7 +7,6 @@ const crypto = require("crypto");
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(__dirname));
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -763,7 +762,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // Servir index.html para todas las rutas no-API
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 module.exports = app;
