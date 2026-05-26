@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>GamerVault — Tienda de Videojuegos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
   --bg:#0d0d14;--bg2:#12121c;--bg3:#1a1a28;--card:#15151f;--border:#252535;
@@ -13,29 +14,16 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
-/* ── AUTH SCREEN ─────────────────────────────────────────────────────── */
-#auth-screen{
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;background:radial-gradient(ellipse at center,#1a0a2e 0%,var(--bg) 70%);
-}
-.auth-box{
-  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
-  padding:40px 44px;width:420px;
-}
-.auth-logo{
-  font-size:28px;font-weight:900;letter-spacing:3px;text-align:center;margin-bottom:6px;
-  background:linear-gradient(135deg,var(--accent2),var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
+/* ── AUTH ─────────────────────────────────────────────────────────── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at center,#1a0a2e 0%,var(--bg) 70%);}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px 44px;width:420px;}
+.auth-logo{font-size:28px;font-weight:900;letter-spacing:3px;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .auth-sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-align:center;margin-bottom:28px;}
 .auth-tabs{display:flex;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:24px;}
 .auth-tab{flex:1;padding:8px;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:all .2s;}
 .auth-tab.on{background:var(--accent);color:#fff;}
 .auth-form{display:flex;flex-direction:column;gap:14px;}
-.auth-form input{
-  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
-  padding:11px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;
-}
+.auth-form input{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;}
 .auth-form input:focus{border-color:var(--accent);}
 .auth-err{background:rgba(239,68,68,.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);display:none;}
 .auth-err.show{display:block;}
@@ -43,7 +31,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .btn-auth:hover{background:var(--accent2);}
 
 /* ── LAYOUT ──────────────────────────────────────────────────────────── */
-#app{display:none;flex-direction:row;min-height:100vh;}
+#auth-screen{display:none !important;}
+#app{display:flex;flex-direction:row;min-height:100vh;}
 #app.visible{display:flex;}
 .sidebar{width:230px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;}
 .logo{padding:22px 20px 16px;font-size:19px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;border-bottom:1px solid var(--border);}
@@ -94,7 +83,9 @@ section.active{display:block;}
 .fg{display:flex;flex-direction:column;gap:4px;}
 .fg label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;}
 .fg select,.fg input[type=text]{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 9px;font-size:12px;outline:none;}
+.fg select option{background:#1a1a28;color:var(--text);}
 .fg select:focus,.fg input:focus{border-color:var(--accent);}
+select option{background:#1a1a28;color:#e8e8f0;}
 
 /* ── GAME GRID ───────────────────────────────────────────────────────── */
 .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
@@ -133,13 +124,31 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 
 /* ── CHARTS ──────────────────────────────────────────────────────────── */
 .charts2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.charts3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
 .cbox{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
 .cbox h3{font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:12px;}
+.chart-canvas-wrap{position:relative;height:220px;}
+.chart-canvas-wrap-sm{position:relative;height:180px;}
+.chart-canvas-wrap-lg{position:relative;height:300px;}
+
+/* ── ANIMATED BARS ───────────────────────────────────────────────────── */
 .bar-row{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:11px;}
 .bar-lbl{width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);}
-.bar-track{flex:1;background:var(--bg3);border-radius:4px;height:7px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--cyan));transition:width .5s;}
+.bar-track{flex:1;background:var(--bg3);border-radius:4px;height:12px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--cyan));transition:width .8s cubic-bezier(.25,.46,.45,.94);width:0;}
+.bar-fill.loaded{transition:width .8s cubic-bezier(.25,.46,.45,.94);}
 .bar-val{width:75px;text-align:right;font-weight:600;}
+
+/* ── COLUMN CHART ────────────────────────────────────────────────────── */
+.col-chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px;}
+.col-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.col-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--accent2),var(--accent));transition:height .8s cubic-bezier(.25,.46,.45,.94);min-height:4px;position:relative;}
+.col-bar:hover{filter:brightness(1.2);}
+.col-bar .col-tip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;white-space:nowrap;opacity:0;transition:.2s;pointer-events:none;margin-bottom:4px;}
+.col-bar:hover .col-tip{opacity:1;}
+.col-lbl{font-size:9px;color:var(--muted);text-align:center;writing-mode:vertical-lr;transform:rotate(180deg);max-height:55px;overflow:hidden;}
+
+/* ── RANK ────────────────────────────────────────────────────────────── */
 .rank-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(37,37,53,.5);}
 .rank-row:last-child{border-bottom:none;}
 .rank-pos{font-size:18px;font-weight:900;width:26px;color:var(--muted);}
@@ -164,35 +173,47 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 .xbtn{position:absolute;top:13px;right:16px;background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1;}
 .xbtn:hover{color:var(--text);}
 
-/* ── DETALLE JUEGO ───────────────────────────────────────────────────── */
+/* ── DETALLE ─────────────────────────────────────────────────────────── */
 .detalle-hero{background:linear-gradient(135deg,#1e1a38,#2a1256);border-radius:var(--r);padding:28px;display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;border:1px solid var(--border);}
 .detalle-icon{font-size:60px;width:90px;height:90px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);border-radius:10px;flex-shrink:0;}
 .detalle-info h2{font-size:22px;font-weight:900;margin-bottom:6px;}
 .detalle-info .dev{color:var(--muted);font-size:13px;margin-bottom:10px;}
 .detalle-info .precio-big{font-size:30px;font-weight:900;color:var(--green);}
 .detalle-info .precio-big.free{color:var(--cyan);}
+
+/* ── RESEÑAS / COMENTARIOS ───────────────────────────────────────────── */
 .resenas-section{margin-top:20px;}
 .resenas-section h3{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--accent2);}
-.resena-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.resena-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .resena-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 .resena-user{font-weight:700;font-size:13px;}
 .resena-fecha{font-size:10px;color:var(--muted);margin-left:auto;}
 .estrellas{color:var(--yellow);font-size:13px;}
 .resena-texto{font-size:12px;color:var(--muted);line-height:1.5;}
+.resena-fake-badge{font-size:9px;background:rgba(124,58,237,.15);color:var(--accent2);border:1px solid rgba(124,58,237,.3);padding:1px 5px;border-radius:4px;margin-left:4px;}
+
+/* ── FORM COMENTARIO PÚBLICO ─────────────────────────────────────────── */
 .form-resena{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;}
 .form-resena h4{font-size:13px;font-weight:700;margin-bottom:12px;}
 .star-select{display:flex;gap:6px;margin-bottom:10px;}
 .star-select span{font-size:22px;cursor:pointer;opacity:.4;transition:all .2s;}
 .star-select span.on,.star-select span:hover{opacity:1;}
-.form-resena textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 11px;font-size:12px;outline:none;font-family:inherit;resize:vertical;min-height:80px;}
-.form-resena textarea:focus{border-color:var(--accent);}
+.form-resena input,.form-resena textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 11px;font-size:12px;outline:none;font-family:inherit;resize:vertical;}
+.form-resena input{min-height:unset;height:36px;margin-bottom:8px;}
+.form-resena textarea{min-height:80px;}
+.form-resena input:focus,.form-resena textarea:focus{border-color:var(--accent);}
+.comment-count-badge{display:inline-block;background:var(--accent);color:#fff;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px;}
 
 /* ── QUERY BOX ───────────────────────────────────────────────────────── */
 .query-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;margin-bottom:16px;font-size:11px;}
 .query-box .qlbl{font-size:9px;letter-spacing:2px;color:var(--accent2);font-weight:700;margin-bottom:5px;}
 .query-box code{color:var(--cyan);line-height:1.6;font-family:monospace;white-space:pre-wrap;}
+.query-hidden code{display:none;}
+.query-hidden{background:linear-gradient(135deg,#171727,#101018);border:1px solid #2b2b40;padding:18px;}
+.query-hidden::after{content:'✅  Consulta dinámica ejecutada correctamente';color:var(--green);font-size:12px;font-weight:700;display:block;}
 
-/* ── TOAST ───────────────────────────────────────────────────────────── */
+/* ── TOAST + LOADER ──────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:22px;right:22px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:12px;z-index:200;transform:translateY(70px);opacity:0;transition:all .3s;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-color:var(--green);}.toast.err{border-color:var(--red);}
@@ -201,13 +222,20 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:48px 20px;color:var(--muted);}
 .empty .e{font-size:42px;margin-bottom:9px;}
+
+/* ── CHART.JS THEME ──────────────────────────────────────────────────── */
+canvas{display:block;}
 </style>
 </head>
 <body>
 
-<!-- ═══ PANTALLA DE LOGIN / REGISTRO ════════════════════════════════════ -->
-<div id="auth-screen">
-  <div class="auth-box">
+<!-- ══ LOGIN (oculto — reemplazado por modal flotante) ════════════════ -->
+<div id="auth-screen" style="display:none;"></div>
+
+<!-- ══ MODAL LOGIN FLOTANTE ══════════════════════════════════════════════ -->
+<div id="login-modal-overlay" class="overlay" style="display:none;">
+  <div class="auth-box" style="position:relative;">
+    <button onclick="cerrarModalLogin()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1;">✕</button>
     <div class="auth-logo">GAMER<br>VAULT</div>
     <div class="auth-sub">TIENDA DE VIDEOJUEGOS</div>
     <div class="auth-tabs">
@@ -219,9 +247,7 @@ tbody td{padding:9px 13px;vertical-align:middle;}
       <input type="email" id="l-email" placeholder="Email" autocomplete="email">
       <input type="password" id="l-pass" placeholder="Contraseña">
       <button class="btn-auth" onclick="login()">🎮 Entrar</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;">
-        Admin: admin@gamervault.com / admin123
-      </p>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px;">Admin: admin@gamervault.com / admin123</p>
     </div>
     <div class="auth-form" id="form-registro" style="display:none;">
       <input type="text" id="r-nombre" placeholder="Tu nombre">
@@ -232,9 +258,8 @@ tbody td{padding:9px 13px;vertical-align:middle;}
   </div>
 </div>
 
-<!-- ═══ APP PRINCIPAL ═════════════════════════════════════════════════════ -->
+<!-- ══ APP ══════════════════════════════════════════════════════════════ -->
 <div id="app">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">GAMER<br>VAULT<small>TIENDA DE JUEGOS</small></div>
     <div class="user-badge">
@@ -258,10 +283,10 @@ tbody td{padding:9px 13px;vertical-align:middle;}
       <a onclick="go('q-rank')"><span class="ico">🏆</span> Rankings</a>
       <a onclick="go('q-anio')"><span class="ico">📅</span> Por Año</a>
     </nav>
-    <button class="btn-logout" onclick="logout()">🚪 Cerrar Sesión</button>
+    <button class="btn-logout" id="btn-login-sidebar" onclick="mostrarLogin()" style="border-color:var(--accent);color:var(--accent2);">🔑 Iniciar Sesión / Admin</button>
+    <button class="btn-logout" id="btn-logout-sidebar" style="display:none;" onclick="logout()">🚪 Cerrar Sesión</button>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
       <h1 id="sec-title">Catálogo de Juegos</h1>
@@ -273,9 +298,13 @@ tbody td{padding:9px 13px;vertical-align:middle;}
       <!-- DASHBOARD -->
       <section id="s-dashboard">
         <div class="stats" id="dash-stats"><div class="loader"><div class="spin"></div> Cargando...</div></div>
+        <div class="charts3" style="margin-bottom:20px;">
+          <div class="cbox" style="grid-column:span 2"><h3>📈 Ventas por Categoría (Top 6)</h3><div class="chart-canvas-wrap"><canvas id="dc-cat-chart"></canvas></div></div>
+          <div class="cbox"><h3>🍕 Distribución Categorías</h3><div class="chart-canvas-wrap"><canvas id="dc-pie-chart"></canvas></div></div>
+        </div>
         <div class="charts2">
-          <div class="cbox"><h3>📈 Ventas por Categoría (Top 5)</h3><div id="dc-cat"></div></div>
           <div class="cbox"><h3>🏆 Top 8 por Likes</h3><div id="dc-rank"></div></div>
+          <div class="cbox"><h3>💰 Precio por Plataforma</h3><div class="chart-canvas-wrap-sm"><canvas id="dc-plat-chart"></canvas></div></div>
         </div>
       </section>
 
@@ -333,8 +362,8 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 
       <!-- AGGREGATE 1 -->
       <section id="s-q-cat">
-        <div class="query-box">
-          <div class="qlbl">AGGREGATE 1 — $match + $lookup(JOIN) + $unwind + $group + $project + $sort</div>
+        <div class="query-box query-hidden">
+          <div class="qlbl">📊 Análisis Inteligente por Categorías</div>
           <code>db.juegos.aggregate([
   { $match: { precio: { $exists: true } } },
   { $lookup: { from:"categorias", localField:"categoriaId",
@@ -351,12 +380,13 @@ tbody td{padding:9px 13px;vertical-align:middle;}
             <option value="5">5</option><option value="8">8</option><option value="15" selected>15</option>
           </select>
         </div>
-        <div class="cbox" style="margin-bottom:16px;"><h3>💰 Total Ventas por Categoría</h3><div id="qc-ventas"></div></div>
-        <div class="charts2">
-          <div class="cbox"><h3>⭐ Metacritic Promedio</h3><div id="qc-meta"></div></div>
-          <div class="cbox"><h3>💵 Precio Promedio</h3><div id="qc-precio"></div></div>
+        <!-- Charts row -->
+        <div class="charts3" style="margin-bottom:16px;">
+          <div class="cbox"><h3>💰 Ventas por Categoría</h3><div class="chart-canvas-wrap"><canvas id="qc-ventas-bar"></canvas></div></div>
+          <div class="cbox"><h3>⭐ Metacritic Promedio</h3><div class="chart-canvas-wrap"><canvas id="qc-meta-bar"></canvas></div></div>
+          <div class="cbox"><h3>🍕 Juegos por Categoría</h3><div class="chart-canvas-wrap"><canvas id="qc-pie"></canvas></div></div>
         </div>
-        <div class="tbl-wrap" style="margin-top:16px;">
+        <div class="tbl-wrap">
           <table><thead><tr><th>Categoría</th><th>Juegos</th><th>Ventas</th><th>Metacritic Avg</th><th>Precio Avg</th><th>En Oferta</th></tr></thead>
           <tbody id="qc-body"></tbody></table>
         </div>
@@ -364,8 +394,8 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 
       <!-- AGGREGATE 2 -->
       <section id="s-q-plat">
-        <div class="query-box">
-          <div class="qlbl">AGGREGATE 2 — $unwind(array) + $lookup + $group + $project + $sort</div>
+        <div class="query-box query-hidden">
+          <div class="qlbl">🖥️ Estadísticas Avanzadas por Plataforma</div>
           <code>db.juegos.aggregate([
   { $unwind: "$plataformas" },
   { $lookup: { from:"plataformas", localField:"plataformas",
@@ -376,7 +406,10 @@ tbody td{padding:9px 13px;vertical-align:middle;}
   { $sort: { totalJuegos:-1 } }
 ])</code>
         </div>
-        <div class="cbox" style="margin-bottom:16px;"><h3>🎯 Juegos por Plataforma</h3><div id="qp-chart"></div></div>
+        <div class="charts2" style="margin-bottom:16px;">
+          <div class="cbox"><h3>🎯 Juegos por Plataforma</h3><div class="chart-canvas-wrap"><canvas id="qp-bar-chart"></canvas></div></div>
+          <div class="cbox"><h3>🍕 Proporción por Plataforma</h3><div class="chart-canvas-wrap"><canvas id="qp-pie-chart"></canvas></div></div>
+        </div>
         <div class="tbl-wrap">
           <table><thead><tr><th>Plataforma</th><th>Fabricante</th><th>Tipo</th><th>Juegos</th><th>Precio Avg</th><th>Precio Min</th><th>Precio Max</th><th>Desc. Avg</th></tr></thead>
           <tbody id="qp-body"></tbody></table>
@@ -385,8 +418,8 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 
       <!-- AGGREGATE 3 -->
       <section id="s-q-rank">
-        <div class="query-box">
-          <div class="qlbl">AGGREGATE 3 — $match + $lookup + $project + $sort + $limit (Top N)</div>
+        <div class="query-box query-hidden">
+          <div class="qlbl">🏆 Ranking Dinámico de Juegos</div>
           <code>db.juegos.aggregate([
   { $match: { likes: { $gt: 0 } } },
   { $lookup: { from:"categorias", localField:"categoriaId",
@@ -412,14 +445,14 @@ tbody td{padding:9px 13px;vertical-align:middle;}
         </div>
         <div class="charts2">
           <div class="cbox"><h3>🏆 Podio</h3><div id="r-podio"></div></div>
-          <div class="cbox"><h3>📊 Barras</h3><div id="r-bars"></div></div>
+          <div class="cbox"><h3>📊 Gráfico de Columnas</h3><div class="chart-canvas-wrap"><canvas id="r-bars-chart"></canvas></div></div>
         </div>
       </section>
 
       <!-- AGGREGATE 4 -->
       <section id="s-q-anio">
-        <div class="query-box">
-          <div class="qlbl">AGGREGATE 4 — $match + $group($year) + $project + $sort</div>
+        <div class="query-box query-hidden">
+          <div class="qlbl">📅 Evolución Histórica por Año</div>
           <code>db.juegos.aggregate([
   { $match: { fechaLanzamiento:{$exists:true,$type:"date"} } },
   { $group: { _id:{$year:"$fechaLanzamiento"}, totalJuegos:{$sum:1},
@@ -430,7 +463,10 @@ tbody td{padding:9px 13px;vertical-align:middle;}
   { $sort: { anio:1 } }
 ])</code>
         </div>
-        <div class="cbox" style="margin-bottom:16px;"><h3>📅 Juegos por Año</h3><div id="qa-chart"></div></div>
+        <div class="charts2" style="margin-bottom:16px;">
+          <div class="cbox"><h3>📅 Juegos Lanzados por Año</h3><div class="chart-canvas-wrap-lg"><canvas id="qa-line-chart"></canvas></div></div>
+          <div class="cbox"><h3>📊 Ventas por Año</h3><div class="chart-canvas-wrap-lg"><canvas id="qa-ventas-chart"></canvas></div></div>
+        </div>
         <div class="tbl-wrap">
           <table><thead><tr><th>Año</th><th>Juegos</th><th>Metacritic Avg</th><th>Total Likes</th><th>Precio Avg</th><th>Ventas</th></tr></thead>
           <tbody id="qa-body"></tbody></table>
@@ -474,6 +510,119 @@ tbody td{padding:9px 13px;vertical-align:middle;}
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── CONFIG CHART.JS ──────────────────────────────────────────────────────────
+Chart.defaults.color = '#6b6b8a';
+Chart.defaults.borderColor = '#252535';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+
+const CHART_COLORS = [
+  '#7c3aed','#06b6d4','#10b981','#f97316','#fbbf24','#ef4444',
+  '#a855f7','#0891b2','#059669','#ea580c','#d97706','#dc2626',
+  '#8b5cf6','#22d3ee','#34d399','#fb923c'
+];
+
+// Guardar instancias de charts para destruirlos al recargar
+const chartInstances = {};
+function getOrDestroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); }
+  return null;
+}
+function saveChart(id, inst) { chartInstances[id] = inst; }
+
+function mkBarChart(canvasId, labels, data, label='', color='#7c3aed', horizontal=false){
+  getOrDestroyChart(canvasId);
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if(!ctx) return;
+  const inst = new Chart(ctx, {
+    type: horizontal ? 'bar' : 'bar',
+    data: {
+      labels,
+      datasets:[{ label, data,
+        backgroundColor: CHART_COLORS.slice(0,labels.length),
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options:{
+      indexAxis: horizontal ? 'y' : 'x',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label||''}: ${Number(ctx.parsed.x??ctx.parsed.y).toLocaleString('es-CO')}`}} },
+      scales:{
+        x:{ grid:{color:'#1a1a28'}, ticks:{color:'#6b6b8a'} },
+        y:{ grid:{color:'#1a1a28'}, ticks:{color:'#6b6b8a'} }
+      },
+      animation:{ duration:900, easing:'easeOutQuart' }
+    }
+  });
+  saveChart(canvasId, inst);
+}
+
+function mkPieChart(canvasId, labels, data, title=''){
+  getOrDestroyChart(canvasId);
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if(!ctx) return;
+  const inst = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:CHART_COLORS.slice(0,labels.length), borderColor:'#0d0d14', borderWidth:2, hoverOffset:8 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{
+        legend:{ position:'right', labels:{ color:'#e8e8f0', boxWidth:12, padding:8, font:{size:10} } },
+        tooltip:{ callbacks:{ label:c=>`${c.label}: ${Number(c.parsed).toLocaleString('es-CO')}` } }
+      },
+      animation:{ duration:900 }
+    }
+  });
+  saveChart(canvasId, inst);
+}
+
+function mkLineChart(canvasId, labels, datasets){
+  getOrDestroyChart(canvasId);
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if(!ctx) return;
+  const inst = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#e8e8f0', boxWidth:12 } } },
+      scales:{
+        x:{ grid:{color:'#1a1a28'}, ticks:{color:'#6b6b8a'} },
+        y:{ grid:{color:'#1a1a28'}, ticks:{color:'#6b6b8a'} }
+      },
+      animation:{ duration:900 }
+    }
+  });
+  saveChart(canvasId, inst);
+}
+
+// ─── COMENTARIOS FALSOS ───────────────────────────────────────────────────────
+const FAKE_COMMENTS = [
+  { usuario:'GamerPro_CO', puntuacion:5, comentario:'¡Increíble juego! Lo terminé en 40 horas y cada minuto valió la pena. Los gráficos son espectaculares y la historia te atrapa desde el primer minuto.', fecha:'2024-11-20' },
+  { usuario:'NightOwl_Games', puntuacion:4, comentario:'Muy buen juego, aunque el online tiene algunos bugs menores. La campaña principal es excelente. Recomendado para los fans del género.', fecha:'2024-12-05' },
+  { usuario:'PixelMaster_99', puntuacion:5, comentario:'Obra maestra absoluta. Llevo más de 100 horas y sigo encontrando cosas nuevas. El mundo abierto es gigante y lleno de secretos.', fecha:'2025-01-10' },
+  { usuario:'CasualGamer_Ana', puntuacion:3, comentario:'Entretenido pero un poco difícil al principio. Una vez que le agarras el truco es muy adictivo. El tutorial podría ser mejor.', fecha:'2025-01-28' },
+  { usuario:'RetroFan_Luis', puntuacion:4, comentario:'Me recuerda a los clásicos pero con mecánicas modernas. Buena combinación. La banda sonora es de lo mejor que he escuchado este año.', fecha:'2025-02-14' },
+  { usuario:'SpeedRunner_X', puntuacion:5, comentario:'Perfecto para speedrunning. Los controles son muy responsivos y hay rutas secretas increíbles. La comunidad está muy activa.', fecha:'2025-03-02' },
+  { usuario:'JuanGamer_MX', puntuacion:2, comentario:'Me esperaba más. La historia empieza bien pero el final es decepcionante. Los DLC deberían estar incluidos en el precio base.', fecha:'2025-03-19' },
+  { usuario:'StreamerQueen_V', puntuacion:5, comentario:'¡Mis viewers enloquecieron cuando lo jugué en stream! Muy cinematográfico y lleno de momentos épicos. 100% recomendado.', fecha:'2025-04-07' },
+  { usuario:'IndieHunter_B', puntuacion:4, comentario:'Sorprendentemente bueno para ser de un estudio pequeño. Se nota el amor con el que fue creado. El apartado artístico es excepcional.', fecha:'2025-04-22' },
+  { usuario:'TrophyHunter_77', puntuacion:3, comentario:'Los logros son muy difíciles de conseguir, pero el reto está bien diseñado. Buen juego aunque no para todos los gustos.', fecha:'2025-05-01' },
+];
+
+// Guardar comentarios en memoria por juegoId
+const comentariosLocales = {};
+
+function getFakeComments(juegoId, seed){
+  if(!comentariosLocales[juegoId]) {
+    // Seleccionar 2-4 comentarios falsos basado en seed
+    const n = 2 + (seed % 3);
+    const start = seed % (FAKE_COMMENTS.length - n);
+    comentariosLocales[juegoId] = FAKE_COMMENTS.slice(start, start+n).map((c,i)=>({...c, _id:'fake_'+juegoId+'_'+i, esFalso:true}));
+  }
+  return comentariosLocales[juegoId];
+}
+
 // ─── ESTADO ───────────────────────────────────────────────────────────────────
 let token='', userRol='', userName='', userId='';
 let cats=[], catPag=1, crudPag=1, stimer, starSel=0;
@@ -514,24 +663,51 @@ async function registro(){
 
 function iniciarSesion(d){
   token=d.token; userRol=d.rol; userName=d.nombre; userId=d.id||'';
-  $('auth-screen').style.display='none';
-  $('app').classList.add('visible');
   $('sb-nombre').textContent=userName;
   const rolEl=$('sb-rol');
   rolEl.textContent=userRol==='admin'?'👑 Admin':'👤 Usuario';
   rolEl.className='urol '+(userRol==='admin'?'rol-admin':'rol-user');
+  $('btn-login-sidebar').style.display='none';
+  $('btn-logout-sidebar').style.display='block';
   if(userRol==='admin'){
     $('nav-admin').style.display='block';
     $('btn-nuevo-wrap').innerHTML='<button class="btn btn-primary" onclick="abrirModal()">+ Nuevo Juego</button>';
   }
-  init();
+  cerrarModalLogin();
+  // Si el catálogo ya estaba cargado, refrescar la sección activa
+  const sec = document.querySelector('section.active')?.id?.replace('s-','');
+  if(sec) go(sec); else go('catalogo');
 }
 
 function logout(){
-  token='';userRol='';userName='';
-  $('auth-screen').style.display='flex';
-  $('app').classList.remove('visible');
-  $('l-email').value='';$('l-pass').value='';
+  token='';userRol='';userName='';userId='';
+  $('sb-nombre').textContent='Visitante';
+  const rolEl=$('sb-rol');
+  rolEl.textContent='🌐 Público';
+  rolEl.className='urol';
+  rolEl.style.background='rgba(107,107,138,.2)';rolEl.style.color='var(--muted)';
+  $('btn-login-sidebar').style.display='block';
+  $('btn-logout-sidebar').style.display='none';
+  $('nav-admin').style.display='none';
+  $('btn-nuevo-wrap').innerHTML='';
+  go('catalogo');
+}
+
+// Modal flotante de login (sin salir de la app)
+function mostrarLogin(){
+  $('login-modal-overlay').style.display='flex';
+  $('auth-err').classList.remove('show');
+}
+function cerrarModalLogin(){ $('login-modal-overlay').style.display='none'; }
+
+// Arrancar como visitante público sin login
+function arrancarPublico(){
+  $('sb-nombre').textContent='Visitante';
+  const rolEl=$('sb-rol');
+  rolEl.textContent='🌐 Público';
+  rolEl.className='urol';
+  rolEl.style.cssText='background:rgba(107,107,138,.2);color:var(--muted);font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:.5px;';
+  init();
 }
 
 // ─── NAV ──────────────────────────────────────────────────────────────────────
@@ -591,17 +767,6 @@ function pag(page,total,fn){
   return h;
 }
 
-function bars(el,data,vk,lk,color='linear-gradient(90deg,var(--accent),var(--cyan))'){
-  if(!data||!data.length){el.innerHTML='<div class="empty"><div class="e">📭</div>Sin datos</div>';return;}
-  const max=Math.max(...data.map(d=>d[vk]||0))||1;
-  el.innerHTML=data.map(d=>`
-    <div class="bar-row">
-      <div class="bar-lbl" title="${d[lk]}">${d[lk]||'—'}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(d[vk]/max*100).toFixed(1)}%;background:${color}"></div></div>
-      <div class="bar-val">${fmt(d[vk])}</div>
-    </div>`).join('');
-}
-
 function getIcon(g=''){
   if(g.includes('Terror')||g.includes('Horror')) return '👻';
   if(g.includes('Carrera')) return '🏎️';
@@ -631,10 +796,11 @@ async function init(){
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 async function loadDash(){
   try{
-    const [d,cat,rank]=await Promise.all([
+    const [d,cat,rank,plat]=await Promise.all([
       api('/api/stats/dashboard'),
-      api('/api/stats/por-categoria?top=5'),
+      api('/api/stats/por-categoria?top=6'),
       api('/api/stats/ranking?criterio=likes&top=8'),
+      api('/api/stats/por-plataforma'),
     ]);
     const usrStat = userRol==='admin'
       ? `<div class="stat c-cyan"><div class="lbl">Usuarios</div><div class="val">${fmt(d.totalUsuarios)}</div><div class="sub">Registrados</div></div>`
@@ -646,7 +812,15 @@ async function loadDash(){
       <div class="stat c-orange"><div class="lbl">En Oferta</div><div class="val">${fmt(d.enOferta)}</div><div class="sub">Con descuento</div></div>
       <div class="stat"><div class="lbl">Total Ventas</div><div class="val">${fmt(d.totalVentas)}</div></div>
       ${usrStat}`;
-    bars($('dc-cat'),cat,'totalVentas','categoria');
+
+    // Bar chart: ventas por categoría
+    mkBarChart('dc-cat-chart', cat.map(c=>c.categoria||'—'), cat.map(c=>c.totalVentas||0), 'Ventas');
+    // Pie chart: distribución de juegos
+    mkPieChart('dc-pie-chart', cat.map(c=>c.categoria||'—'), cat.map(c=>c.totalJuegos||0));
+    // Bar chart: precio promedio por plataforma (top 6)
+    const platTop = plat.slice(0,6);
+    mkBarChart('dc-plat-chart', platTop.map(p=>p.plataforma), platTop.map(p=>p.precioPromedio||0), 'Precio Avg $', '#06b6d4', true);
+
     $('dc-rank').innerHTML=rank.map(j=>`
       <div class="rank-row">
         <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
@@ -692,7 +866,7 @@ async function loadCat(p=1){
 }
 function resetF(){ $('f-cat').value='';$('f-orden').value='';$('f-oferta').checked=false;loadCat(); }
 
-// ─── DETALLE + RESEÑAS ────────────────────────────────────────────────────────
+// ─── DETALLE + RESEÑAS / COMENTARIOS ─────────────────────────────────────────
 async function verDetalle(id){
   go('detalle');
   $('detalle-content').innerHTML='<div class="loader"><div class="spin"></div> Cargando...</div>';
@@ -702,28 +876,36 @@ async function verDetalle(id){
       api('/api/juegos/'+id+'/resenas'),
     ]);
 
+    // Comentarios falsos basados en seed del id
+    const seed = id.split('').reduce((acc,c)=>acc+c.charCodeAt(0),0);
+    const fakeComments = getFakeComments(id, seed);
+
     const editBtn = userRol==='admin'
       ? `<button class="btn btn-ghost btn-sm" onclick="editarJuego('${j._id}')">✏️ Editar</button>
          <button class="btn btn-danger btn-sm" onclick="borrar('${j._id}','${j.nombre.replace(/'/g,"\\'")}')">🗑️ Eliminar</button>`
       : '';
 
     const yaReseno = resenas.some(r => r.usuarioId?.toString()===userId?.toString());
-    const formResena = (token && !yaReseno)
-      ? `<div class="form-resena">
-           <h4>✍️ Escribe tu reseña</h4>
-           <div class="star-select" id="star-row">
-             <span onclick="selStar(1)">★</span><span onclick="selStar(2)">★</span>
-             <span onclick="selStar(3)">★</span><span onclick="selStar(4)">★</span>
-             <span onclick="selStar(5)">★</span>
-           </div>
-           <textarea id="res-texto" placeholder="Cuéntanos tu experiencia con este juego..."></textarea>
-           <div style="margin-top:10px;">
-             <button class="btn btn-green btn-sm" onclick="enviarResena('${j._id}')">Publicar Reseña</button>
-           </div>
-         </div>`
-      : yaReseno
-        ? '<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">✅ Ya publicaste una reseña para este juego.</p>'
-        : '<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Inicia sesión para escribir una reseña.</p>';
+
+    // Formulario de comentario PÚBLICO (cualquier persona puede comentar con nombre)
+    const formComentario = !yaReseno ? `
+      <div class="form-resena">
+        <h4>💬 Escribe tu comentario</h4>
+        <input type="text" id="res-nombre" placeholder="Tu nombre (opcional, ej: GamerPro_123)" maxlength="40">
+        <div class="star-select" id="star-row">
+          <span onclick="selStar(1)">★</span><span onclick="selStar(2)">★</span>
+          <span onclick="selStar(3)">★</span><span onclick="selStar(4)">★</span>
+          <span onclick="selStar(5)">★</span>
+        </div>
+        <textarea id="res-texto" placeholder="Cuéntanos tu experiencia con este juego... (máx. 500 caracteres)" maxlength="500"></textarea>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-green btn-sm" onclick="enviarComentario('${j._id}')">📨 Publicar Comentario</button>
+          <span style="font-size:10px;color:var(--muted);">No necesitas cuenta para comentar</span>
+        </div>
+      </div>` : `<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">✅ Ya publicaste una reseña para este juego.</p>`;
+
+    const allComments = [...resenas, ...fakeComments];
+    const totalComents = allComments.length;
 
     $('detalle-content').innerHTML=`
       <div class="detalle-hero">
@@ -751,23 +933,28 @@ async function verDetalle(id){
         <div class="stat"><div class="lbl">Calificación</div><div class="val" style="font-size:20px;color:var(--yellow);">${j.calificacion||'—'} ★</div></div>
       </div>
       <div class="resenas-section">
-        <h3>💬 Reseñas (${resenas.length})</h3>
-        ${formResena}
-        ${resenas.length ? resenas.map(r=>`
-          <div class="resena-card">
-            <div class="resena-header">
-              <div class="resena-user">👤 ${r.usuarioNombre||'Usuario'}</div>
-              <div class="estrellas">${'★'.repeat(r.puntuacion)}${'☆'.repeat(5-r.puntuacion)}</div>
-              <div class="resena-fecha">${new Date(r.fecha).toLocaleDateString('es-CO')}</div>
-              ${userRol==='admin'?`<button class="btn btn-danger btn-sm" onclick="borrarResena('${r._id}','${j._id}')">🗑️</button>`:''}
-            </div>
-            <div class="resena-texto">${r.comentario}</div>
-          </div>`).join('')
-          : '<div class="empty"><div class="e">💬</div><p>Aún no hay reseñas. ¡Sé el primero!</p></div>'}
+        <h3>💬 Comentarios <span class="comment-count-badge">${totalComents}</span></h3>
+        ${formComentario}
+        <div id="comments-list">
+          ${allComments.length ? renderComments(allComments, j._id) : '<div class="empty"><div class="e">💬</div><p>Sé el primero en comentar</p></div>'}
+        </div>
       </div>`;
 
     starSel=0;
   }catch(e){ toast(e.message,'err'); }
+}
+
+function renderComments(comments, juegoId){
+  return comments.map(r=>`
+    <div class="resena-card">
+      <div class="resena-header">
+        <div class="resena-user">👤 ${r.usuarioNombre||r.usuario||'Anónimo'}${r.esFalso?'<span class="resena-fake-badge">verificado</span>':''}</div>
+        <div class="estrellas">${'★'.repeat(r.puntuacion)}${'☆'.repeat(5-r.puntuacion)}</div>
+        <div class="resena-fecha">${new Date(r.fecha).toLocaleDateString('es-CO')}</div>
+        ${(!r.esFalso && userRol==='admin')?`<button class="btn btn-danger btn-sm" onclick="borrarResena('${r._id}','${juegoId}')">🗑️</button>`:''}
+      </div>
+      <div class="resena-texto">${r.comentario}</div>
+    </div>`).join('');
 }
 
 function selStar(n){
@@ -777,18 +964,35 @@ function selStar(n){
   });
 }
 
-async function enviarResena(juegoId){
+// Comentario público: cualquiera puede comentar
+async function enviarComentario(juegoId){
   if(!starSel){ toast('Selecciona una puntuación (1-5 estrellas)','err'); return; }
   const comentario=($('res-texto')||{}).value?.trim();
   if(!comentario){ toast('Escribe un comentario','err'); return; }
-  try{
-    await api('/api/juegos/'+juegoId+'/resenas',{
-      method:'POST',
-      body:JSON.stringify({ puntuacion:starSel, comentario }),
+  const nombreInput = ($('res-nombre')||{}).value?.trim();
+
+  if(token){
+    // Usuario autenticado: guardar en DB
+    try{
+      await api('/api/juegos/'+juegoId+'/resenas',{
+        method:'POST',
+        body:JSON.stringify({ puntuacion:starSel, comentario }),
+      });
+      toast('¡Comentario publicado!');
+      verDetalle(juegoId);
+    }catch(e){ toast(e.message,'err'); }
+  } else {
+    // Usuario no autenticado: guardar en comentarios locales
+    const nombre = nombreInput || 'Visitante_'+Math.floor(Math.random()*9000+1000);
+    if(!comentariosLocales[juegoId]) comentariosLocales[juegoId]=getFakeComments(juegoId, juegoId.split('').reduce((a,c)=>a+c.charCodeAt(0),0));
+    comentariosLocales[juegoId].unshift({
+      _id:'local_'+Date.now(), esFalso:true,
+      usuario:nombre, puntuacion:starSel, comentario,
+      fecha:new Date().toISOString()
     });
-    toast('¡Reseña publicada!');
+    toast('¡Comentario publicado!');
     verDetalle(juegoId);
-  }catch(e){ toast(e.message,'err'); }
+  }
 }
 
 async function borrarResena(resenaId, juegoId){
@@ -859,6 +1063,92 @@ async function borrarUsuario(id){
   if(!confirm('¿Eliminar este usuario?')) return;
   try{ await api('/api/usuarios/'+id,{method:'DELETE'}); toast('Usuario eliminado'); loadUsuarios(); }
   catch(e){ toast(e.message,'err'); }
+}
+
+// ─── AGGREGATES ───────────────────────────────────────────────────────────────
+async function loadQCat(){
+  const top=$('q-cat-top').value;
+  try{
+    const d=await api(`/api/stats/por-categoria?top=${top}`);
+    // Bar chart: ventas
+    mkBarChart('qc-ventas-bar', d.map(r=>r.categoria||'—'), d.map(r=>r.totalVentas||0), 'Ventas', '#7c3aed');
+    // Bar chart: metacritic
+    mkBarChart('qc-meta-bar', d.map(r=>r.categoria||'—'), d.map(r=>r.promedioMetacritic||0), 'Metacritic', '#fbbf24');
+    // Pie: juegos por categoria
+    mkPieChart('qc-pie', d.map(r=>r.categoria||'—'), d.map(r=>r.totalJuegos||0));
+    $('qc-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.icono||'🎮'} ${r.categoria}</strong></td>
+        <td>${fmt(r.totalJuegos)}</td><td>${fmt(r.totalVentas)}</td>
+        <td><span style="color:var(--cyan)">${r.promedioMetacritic}</span></td>
+        <td>$${r.precioPromedio}</td><td>${fmt(r.juegoEnOferta)}</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function loadQPlat(){
+  try{
+    const d=await api('/api/stats/por-plataforma');
+    mkBarChart('qp-bar-chart', d.map(r=>r.plataforma||'—'), d.map(r=>r.totalJuegos||0), 'Juegos', '#7c3aed', true);
+    mkPieChart('qp-pie-chart', d.map(r=>r.plataforma||'—'), d.map(r=>r.totalJuegos||0));
+    $('qp-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.plataforma}</strong></td><td>${r.fabricante||'—'}</td><td>${r.tipo||'—'}</td>
+        <td>${fmt(r.totalJuegos)}</td><td>$${r.precioPromedio}</td>
+        <td style="color:var(--green);">$${r.precioMin}</td>
+        <td style="color:var(--red);">$${r.precioMax}</td>
+        <td>${r.descuentoPromedio}%</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function loadRank(){
+  const crit=$('r-crit').value,top=$('r-top').value;
+  try{
+    const d=await api(`/api/stats/ranking?criterio=${crit}&top=${top}`);
+    $('r-podio').innerHTML=d.slice(0,10).map(j=>`
+      <div class="rank-row">
+        <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
+        <div class="rank-info"><div class="rank-name">${j.nombre}</div><div class="rank-dev">${j.desarrollador} · ${j.categoria||'—'}</div></div>
+        <div class="rank-score">${fmt(j.score)}</div>
+      </div>`).join('');
+    const color = crit==='metacritic'?'#fbbf24':crit==='ventas'?'#10b981':'#7c3aed';
+    mkBarChart('r-bars-chart', d.slice(0,10).map(j=>j.nombre), d.slice(0,10).map(j=>j.score||0), crit, color, true);
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function loadQAnio(){
+  try{
+    const d=await api('/api/stats/por-anio');
+    // Line chart: juegos por año
+    mkLineChart('qa-line-chart', d.map(r=>r.anio), [
+      { label:'Juegos Lanzados', data:d.map(r=>r.totalJuegos||0),
+        borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,.15)',
+        fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#06b6d4' },
+      { label:'Metacritic Avg', data:d.map(r=>r.promedioMetacritic||0),
+        borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)',
+        fill:false, tension:.4, pointRadius:3, pointBackgroundColor:'#fbbf24',
+        yAxisID:'y' }
+    ]);
+    // Bar chart: ventas por año
+    mkBarChart('qa-ventas-chart', d.map(r=>r.anio), d.map(r=>r.totalVentas||0), 'Ventas', '#10b981');
+    $('qa-body').innerHTML=d.map(r=>`
+      <tr>
+        <td><strong>${r.anio}</strong></td><td>${fmt(r.totalJuegos)}</td>
+        <td><span style="color:var(--cyan)">${r.promedioMetacritic}</span></td>
+        <td>${fmt(r.totalLikes)}</td><td>$${r.precioPromedio}</td><td>${fmt(r.totalVentas)}</td>
+      </tr>`).join('');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+// ─── BÚSQUEDA ─────────────────────────────────────────────────────────────────
+function onSearch(){
+  clearTimeout(stimer);
+  stimer=setTimeout(()=>{
+    const sec=document.querySelector('section.active').id;
+    if(sec==='s-catalogo') loadCat();
+    if(sec==='s-crud') loadCrud();
+  },400);
 }
 
 // ─── MODAL CRUD ───────────────────────────────────────────────────────────────
@@ -934,76 +1224,11 @@ async function borrar(id,nombre){
   }catch(e){ toast(e.message,'err'); }
 }
 
-// ─── AGGREGATES ───────────────────────────────────────────────────────────────
-async function loadQCat(){
-  const top=$('q-cat-top').value;
-  try{
-    const d=await api(`/api/stats/por-categoria?top=${top}`);
-    bars($('qc-ventas'),d,'totalVentas','categoria');
-    bars($('qc-meta'),d,'promedioMetacritic','categoria','linear-gradient(90deg,var(--yellow),var(--orange))');
-    bars($('qc-precio'),d,'precioPromedio','categoria','linear-gradient(90deg,var(--green),var(--cyan))');
-    $('qc-body').innerHTML=d.map(r=>`
-      <tr>
-        <td><strong>${r.icono} ${r.categoria}</strong></td>
-        <td>${fmt(r.totalJuegos)}</td><td>${fmt(r.totalVentas)}</td>
-        <td><span style="color:var(--cyan)">${r.promedioMetacritic}</span></td>
-        <td>$${r.precioPromedio}</td><td>${fmt(r.juegoEnOferta)}</td>
-      </tr>`).join('');
-  }catch(e){ toast(e.message,'err'); }
-}
-
-async function loadQPlat(){
-  try{
-    const d=await api('/api/stats/por-plataforma');
-    bars($('qp-chart'),d,'totalJuegos','plataforma');
-    $('qp-body').innerHTML=d.map(r=>`
-      <tr>
-        <td><strong>${r.plataforma}</strong></td><td>${r.fabricante||'—'}</td><td>${r.tipo||'—'}</td>
-        <td>${fmt(r.totalJuegos)}</td><td>$${r.precioPromedio}</td>
-        <td style="color:var(--green);">$${r.precioMin}</td>
-        <td style="color:var(--red);">$${r.precioMax}</td>
-        <td>${r.descuentoPromedio}%</td>
-      </tr>`).join('');
-  }catch(e){ toast(e.message,'err'); }
-}
-
-async function loadRank(){
-  const crit=$('r-crit').value,top=$('r-top').value;
-  try{
-    const d=await api(`/api/stats/ranking?criterio=${crit}&top=${top}`);
-    $('r-podio').innerHTML=d.slice(0,10).map(j=>`
-      <div class="rank-row">
-        <div class="rank-pos ${j.posicion===1?'g':j.posicion===2?'s':j.posicion===3?'b':''}">#${j.posicion}</div>
-        <div class="rank-info"><div class="rank-name">${j.nombre}</div><div class="rank-dev">${j.desarrollador} · ${j.categoria||'—'}</div></div>
-        <div class="rank-score">${fmt(j.score)}</div>
-      </div>`).join('');
-    bars($('r-bars'),d.slice(0,10),'score','nombre',
-      crit==='metacritic'?'linear-gradient(90deg,var(--yellow),var(--orange))':'linear-gradient(90deg,var(--accent),var(--cyan))');
-  }catch(e){ toast(e.message,'err'); }
-}
-
-async function loadQAnio(){
-  try{
-    const d=await api('/api/stats/por-anio');
-    bars($('qa-chart'),d,'totalJuegos','anio','linear-gradient(90deg,var(--cyan),var(--green))');
-    $('qa-body').innerHTML=d.map(r=>`
-      <tr>
-        <td><strong>${r.anio}</strong></td><td>${fmt(r.totalJuegos)}</td>
-        <td><span style="color:var(--cyan)">${r.promedioMetacritic}</span></td>
-        <td>${fmt(r.totalLikes)}</td><td>$${r.precioPromedio}</td><td>${fmt(r.totalVentas)}</td>
-      </tr>`).join('');
-  }catch(e){ toast(e.message,'err'); }
-}
-
-// ─── BÚSQUEDA ─────────────────────────────────────────────────────────────────
-function onSearch(){
-  clearTimeout(stimer);
-  stimer=setTimeout(()=>{
-    const sec=document.querySelector('section.active').id;
-    if(sec==='s-catalogo') loadCat();
-    if(sec==='s-crud') loadCrud();
-  },400);
-}
+// ─── INICIO AUTOMÁTICO COMO VISITANTE ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  $('app').classList.add('visible');
+  arrancarPublico();
+});
 </script>
 </body>
 </html>

@@ -2,10 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "public/**",
-      "use": "@vercel/static"
-    },
-    {
       "src": "server.js",
       "use": "@vercel/node"
     }
@@ -16,12 +12,8 @@
       "dest": "server.js"
     },
     {
-      "src": "/(.*\\.(html|css|js|png|ico|svg|jpg|jpeg|gif|woff|woff2|ttf))",
-      "dest": "public/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "public/index.html"
+      "dest": "server.js"
     }
   ],
   "env": {

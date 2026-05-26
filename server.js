@@ -8,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(__dirname));
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const MONGO_URI = "mongodb+srv://ortizlorenapatricia_db_user:Lorena2024@cluster0.gmjaats.mongodb.net/tienda_videojuegos?appName=Cluster0";
