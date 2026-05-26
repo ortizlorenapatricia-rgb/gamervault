@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(__dirname));
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -56,17 +57,25 @@ function soloAdmin(req, res, next) {
   next();
 }
 
-// ─── CONEXIÓN ─────────────────────────────────────────────────────────────────
-let conectado = false;
+// ─── CONEXIÓN optimizada para Vercel serverless ──────────────────────────────
+// Se usa una Promise global para reutilizar la conexión entre invocaciones
+let clientPromise = null;
 
 async function conectarSiNecesario() {
-  if (!conectado) {
-    await conectar();
-    conectado = true;
+  if (db) return; // ya conectado en esta instancia
+  if (!clientPromise) {
+    const client = new MongoClient(MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+    });
+    clientPromise = client.connect().then(() => client);
   }
+  const client = await clientPromise;
+  db = client.db(DB_NAME);
+  console.log("✅ Conectado a MongoDB →", DB_NAME);
 }
 
-// ✅ Middleware para conectar ANTES de todas las rutas (Vercel serverless)
+// Middleware: conectar ANTES de todas las rutas
 app.use(async (req, res, next) => {
   try {
     await conectarSiNecesario();
@@ -77,12 +86,8 @@ app.use(async (req, res, next) => {
 });
 
 async function conectar() {
-  const client = new MongoClient(MONGO_URI);
-  await client.connect();
-  db = client.db(DB_NAME);
-  console.log("✅ Conectado a MongoDB →", DB_NAME);
-
-  // Crear/actualizar admin por defecto (upsert garantiza contraseña correcta)
+  await conectarSiNecesario();
+  // Upsert admin — solo se llama en arranque local/Railway
   await db.collection("usuarios").updateOne(
     { email: "admin@gamervault.com" },
     { $set: {
@@ -762,7 +767,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // Servir index.html para todas las rutas no-API
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 module.exports = app;
