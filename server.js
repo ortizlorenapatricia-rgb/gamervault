@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-const MONGO_URI = "mongodb+srv://Lorena_db_user:q6QPaiCNcW1pGouI@cluster0.gmjaats.mongodb.net/tienda_videojuegos?appName=Cluster0";
+const MONGO_URI = "mongodb+srv://ortizlorenapatricia_db_user:Lorena2024@cluster0.gmjaats.mongodb.net/tienda_videojuegos?appName=Cluster0";
 // ✅ CORREGIDO: nombre exacto de la BD que crea seed.js
 const DB_NAME   = "tienda_videojuegos";
 const SECRET    = "gamervault_secret_2024";
@@ -57,6 +57,25 @@ function soloAdmin(req, res, next) {
 }
 
 // ─── CONEXIÓN ─────────────────────────────────────────────────────────────────
+let conectado = false;
+
+async function conectarSiNecesario() {
+  if (!conectado) {
+    await conectar();
+    conectado = true;
+  }
+}
+
+// ✅ Middleware para conectar ANTES de todas las rutas (Vercel serverless)
+app.use(async (req, res, next) => {
+  try {
+    await conectarSiNecesario();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Error conectando a la base de datos: " + err.message });
+  }
+});
+
 async function conectar() {
   const client = new MongoClient(MONGO_URI);
   await client.connect();
@@ -727,24 +746,6 @@ app.get("/api/stats/transacciones/por-metodo", async (req, res) => {
 });
 
 // ─── INICIO ───────────────────────────────────────────────────────────────────
-let conectado = false;
-
-async function conectarSiNecesario() {
-  if (!conectado) {
-    await conectar();
-    conectado = true;
-  }
-}
-
-// Middleware para conectar antes de cada request en Vercel
-app.use(async (req, res, next) => {
-  try {
-    await conectarSiNecesario();
-    next();
-  } catch (err) {
-    res.status(500).json({ error: "Error conectando a la base de datos: " + err.message });
-  }
-});
 
 // Para desarrollo local
 if (process.env.NODE_ENV !== "production") {
